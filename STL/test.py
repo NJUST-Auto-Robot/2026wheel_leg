@@ -73,6 +73,9 @@ g = 9.8
 
 VERBOSE = True
 
+# 新增：VMC 调试日志开关（修改：独立控制 VMC 日志输出）
+VMC_VERBOSE = False
+
 K_HIP = 500.0
 D_HIP = 50.0
 
@@ -81,7 +84,7 @@ CTRL_LIMIT = 30.0
 # 新增：驱动控制参数
 TARGET_VELOCITY = 0.0  # 目标速度 (m/s)
 TARGET_POSITION = None  # 目标位置 (None 表示不启用位置控制)
-K_VEL = 3.0  # 速度控制增益
+K_VEL = 5.0  # 速度控制增益 (修改：从 3.0 增加至 5.0)
 K_POS = 2.0  # 位置控制增益
 
 # 新增：轮子半径（用于速度转换）
@@ -373,7 +376,7 @@ def compute_drive_torque(data, model, wheel_pos, wheel_vel):
         data: MuJoCo 数据对象
         model: MuJoCo 模型对象
         wheel_pos: 当前轮子关节位置 (rad)
-        wheel_vel: 当前轮子关节角速度 (rad/s) - 修改：直接使用角速度
+        wheel_vel: 当前轮子关节角速度 (rad/s)
     
     返回：
         u_drive: 驱动扭矩 (2 维数组，左右轮相同)
@@ -382,28 +385,26 @@ def compute_drive_torque(data, model, wheel_pos, wheel_vel):
     
     u_drive = np.zeros(N_CONTROLS)
     
-    # 修改：直接使用轮子角速度进行控制，避免线速度转换误差
-    # 将目标线速度转换为角速度：ω_ref = v_ref / r
-    target_wheel_vel = TARGET_VELOCITY / WHEEL_RADIUS
+    # 将轮子角速度转换为线速度：v = ω * r
+    wheel_linear_vel = wheel_vel * WHEEL_RADIUS
+    
+    # 将轮子关节位置转换为线位移：s = θ * r
+    wheel_linear_pos = wheel_pos * WHEEL_RADIUS
     
     if TARGET_POSITION is not None:
         # 位置控制模式
-        # 将目标位置转换为轮子角位置：θ_ref = s_ref / r
-        target_wheel_pos = TARGET_POSITION / WHEEL_RADIUS
-        pos_error = target_wheel_pos - wheel_pos
-        # 修改：使用角速度进行阻尼控制
-        u_drive[0] = K_POS * pos_error - K_VEL * wheel_vel
+        pos_error = TARGET_POSITION - wheel_linear_pos
+        u_drive[0] = K_POS * pos_error - K_VEL * wheel_linear_vel
         u_drive[1] = u_drive[0]
         if VERBOSE and np.random.rand() < 0.01:
-            print(f"[驱动控制] 位置模式：error={pos_error:.4f}rad, u_drive={u_drive[0]:.4f}")
+            print(f"[驱动控制] 位置模式：error={pos_error:.4f}, u_drive={u_drive[0]:.4f}")
     else:
-        # 速度控制模式 - 修改：直接使用角速度误差
-        # 修改说明：使用车轮角速度 wheel_vel 直接计算速度误差，避免坐标系转换问题
-        vel_error = target_wheel_vel - wheel_vel
+        # 速度控制模式
+        vel_error = TARGET_VELOCITY - wheel_linear_vel
         u_drive[0] = K_VEL * vel_error
         u_drive[1] = u_drive[0]
         if VERBOSE and np.random.rand() < 0.01:
-            print(f"[驱动控制] 速度模式：target={target_wheel_vel:.4f}rad/s, current={wheel_vel:.4f}rad/s, error={vel_error:.4f}rad/s, u_drive={u_drive[0]:.4f}")
+            print(f"[驱动控制] 速度模式：target={TARGET_VELOCITY:.4f}, current={wheel_linear_vel:.4f}, error={vel_error:.4f}, u_drive={u_drive[0]:.4f}")
     
     return np.clip(u_drive, -CTRL_LIMIT/2, CTRL_LIMIT/2)
 
@@ -604,7 +605,8 @@ def compute_vmc_foot_forces(data, model):
     fy_right = fy_total_lateral / 2.0
     
     # ===================== 新增：详细调试日志 =====================
-    if VERBOSE:
+    # 修改：使用 VMC_VERBOSE 独立控制 VMC 日志输出
+    if VMC_VERBOSE:
         print("\n" + "="*60)
         print("[VMC 调试] 足端力计算")
         print("="*60)
@@ -709,7 +711,8 @@ def compute_leg_joint_torques(data, model, fz_left, fz_right, fx_left, fy_left, 
         leg_torques[HIP_JOINTS[3]] = right_front_torque  # right_front
         
         # ===================== 修改：简化调试日志（仅在需要时输出）=====================
-        if VERBOSE:
+        # 修改：使用 VMC_VERBOSE 独立控制 VMC 日志输出
+        if VMC_VERBOSE:
             print("\n" + "="*60)
             print("[VMC 调试] 关节扭矩计算")
             print("="*60)
@@ -769,7 +772,8 @@ def apply_leg_torques(data, model, leg_torques, verbose=False):
     }
     
     # ===================== 修改：条件化调试日志 =====================
-    if verbose:
+    # 修改：使用 VMC_VERBOSE 独立控制 VMC 日志输出
+    if verbose and VMC_VERBOSE:
         print("\n" + "="*60)
         print("[VMC 调试] 施加关节扭矩到执行器")
         print("="*60)
@@ -790,16 +794,16 @@ def apply_leg_torques(data, model, leg_torques, verbose=False):
                     data.actuator(actuator_name).ctrl[0] = torque_clamped
                     
                     # ===================== 修改：条件化日志输出 =====================
-                    if verbose:
+                    if verbose and VMC_VERBOSE:
                         clamped = torque_clamped != motor_torque
                         status = " [被限幅]" if clamped else ""
                         print(f"[执行器] {actuator_name}: 关节扭矩={torque:.2f}N·m -> 电机扭矩={motor_torque:.2f}N·m -> 限幅后={torque_clamped:.2f}N·m{status}")
             except Exception as e:
-                if verbose:
+                if verbose and VMC_VERBOSE:
                     print(f"[VMC 施加扭矩] 执行器 {actuator_name} 失败：{e}")
     
     # 修改：施加膝关节限位扭矩（根据前后腿分别设置限位角度，更柔和的控制）
-    if verbose:
+    if verbose and VMC_VERBOSE:
         print("-"*60)
         print("[膝关节限位控制] 后膝:-60°~30°, 前膝:-30°~60°, 柔和限位模式（15°阈值）")
     
@@ -857,16 +861,16 @@ def apply_leg_torques(data, model, leg_torques, verbose=False):
                             torque_clamped = np.clip(motor_torque, -CTRL_LIMIT/4, CTRL_LIMIT/4)
                             data.actuator(actuator_name).ctrl[0] = torque_clamped
                             
-                            if verbose:
+                            if verbose and VMC_VERBOSE:
                                 clamped = torque_clamped != motor_torque
                                 status = " [被限幅]" if clamped else ""
                                 print(f"[膝关节] {joint_name}: 角度={np.degrees(knee_angle):.2f}°, 限位=[{np.degrees(knee_min):.2f}°, {np.degrees(knee_max):.2f}°]{activation_status}")
                                 print(f"  -> 限位扭矩={limit_torque:.2f}N·m -> 电机扭矩={motor_torque:.2f}N·m -> 限幅后={torque_clamped:.2f}N·m{status}")
         except Exception as e:
-            if verbose:
+            if verbose and VMC_VERBOSE:
                 print(f"[膝关节限位] 关节 {joint_name} 处理失败：{e}")
     
-    if verbose:
+    if verbose and VMC_VERBOSE:
         print("="*60 + "\n")
 
 
@@ -967,8 +971,9 @@ def main():
         print(A)
         print(B)
 
-    Q_small = np.diag([0, 1, 1, 1])
-    R_small = np.array([[0.4]])
+    # 修改：LQR 权重矩阵配置 (更新为 query 中的配置)
+    Q_small = np.diag([0, 15, 500, 800])  # 修改：增加姿态和角速度权重
+    R_small = np.array([[10]])  # 修改：增加控制权重，减少控制输出
     K_small = compute_lqr_gain(A, B, Q_small, R_small, verbose=VERBOSE)
     if VERBOSE:
         print("K_small (4x1):\n", K_small)
@@ -1017,14 +1022,14 @@ def main():
                 # 计算驱动扭矩 u2 (速度/位置控制)
                 u_drive = compute_drive_torque(data, model, x_current[0], x_current[1])
                 
-                # 新增：VMC 控制 - 计算足端力
+                # VMC 控制 - 计算足端力 (保留)
                 fz_left, fz_right, fx_left, fy_left, fx_right, fy_right = compute_vmc_foot_forces(data, model)
                 
-                # 新增：VMC 控制 - 将足端力映射到腿部关节扭矩
+                # VMC 控制 - 将足端力映射到腿部关节扭矩 (保留)
                 leg_torques = compute_leg_joint_torques(data, model, fz_left, fz_right, fx_left, fy_left, fx_right, fy_right)
                 
-                # 新增：VMC 控制 - 施加腿部关节扭矩
-                apply_leg_torques(data, model, leg_torques, verbose=(step_count % vmc_log_interval == 0))
+                # VMC 控制 - 施加腿部关节扭矩 (保留，修改：关闭调试日志)
+                apply_leg_torques(data, model, leg_torques, verbose=False)  # 修改：关闭 VMC 调试日志
                 
                 # 总扭矩 = 平衡扭矩 + 驱动扭矩
                 u = u_balance + u_drive
@@ -1085,10 +1090,10 @@ def main():
                 # 计算驱动扭矩 u2 (速度/位置控制)
                 u_drive = compute_drive_torque(data, model, x_current[0], x_current[1])
                 
-                # 修改：VMC 控制 - 每步都执行，日志按间隔输出
+                # VMC 控制 - 每步都执行，日志按间隔输出 (保留，修改：关闭调试日志)
                 fz_left, fz_right, fx_left, fy_left, fx_right, fy_right = compute_vmc_foot_forces(data, model)
                 leg_torques = compute_leg_joint_torques(data, model, fz_left, fz_right, fx_left, fy_left, fx_right, fy_right)
-                apply_leg_torques(data, model, leg_torques, verbose=(step_count % vmc_log_interval == 0))
+                apply_leg_torques(data, model, leg_torques, verbose=False)  # 修改：关闭 VMC 调试日志
                 
                 # 总扭矩 = 平衡扭矩 + 驱动扭矩
                 u = u_balance + u_drive

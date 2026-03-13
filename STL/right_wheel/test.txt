@@ -1,0 +1,578 @@
+import mujoco
+import mujoco.viewer as viewer
+import numpy as np
+from scipy.linalg import solve_continuous_are, inv
+import threading
+import sys
+import termios
+import tty
+import os
+
+# ===================== 0. 辅助函数 =====================
+def quat2euler(quat):
+    """将四元数转换为欧拉角 (roll, pitch, yaw)
+    输入：quat = [w, x, y, z]
+    输出：euler = [roll, pitch, yaw]
+    欧拉角顺序：ZYX (索引 0 为 roll/X 轴，索引 1 为 pitch/Y 轴)
+    修改：x 与 y 轴互换后，pitch 对应 X 轴旋转（索引 0）
+    """
+    w, x, y, z = quat
+    
+    # Roll (Φ) - 绕 X 轴旋转（修改：原为 pitch，现作为 roll）
+    sinh = 2.0 * (w * x + y * z)
+    cosh = 1.0 - 2.0 * (x * x + y * y)
+    roll = np.arctan2(sinh, cosh)
+    
+    # Pitch (Θ) - 绕 Y 轴旋转，需裁剪防止数值溢出
+    sin_p = 2.0 * (w * y - z * x)
+    sin_p = np.clip(sin_p, -1.0, 1.0)
+    pitch = np.arcsin(sin_p)
+    
+    # Yaw (Ψ) - 绕 Z 轴旋转
+    sinh = 2.0 * (w * z + x * y)
+    cosh = 1.0 - 2.0 * (y * y + z * z)
+    yaw = np.arctan2(sinh, cosh)
+    
+    return np.array([roll, pitch, yaw])
+
+
+def euler2quat(euler):
+    """将欧拉角转换为四元数 (roll, pitch, yaw) -> [w, x, y, z]
+    输入：euler = [roll, pitch, yaw]
+    输出：quat = [w, x, y, z]
+    """
+    roll, pitch, yaw = euler
+    
+    # 计算半角
+    cr = np.cos(roll / 2.0)
+    sr = np.sin(roll / 2.0)
+    cp = np.cos(pitch / 2.0)
+    sp = np.sin(pitch / 2.0)
+    cy = np.cos(yaw / 2.0)
+    sy = np.sin(yaw / 2.0)
+    
+    # 组合四元数
+    w = cr * cp * cy + sr * sp * sy
+    x = sr * cp * cy - cr * sp * sy
+    y = cr * sp * cy + sr * cp * sy
+    z = cr * cp * sy - sr * sp * cy
+    
+    return np.array([w, x, y, z])
+
+
+# ===================== 1. 核心参数配置 =====================
+XML_PATH = "output_base.xml"
+
+N_STATES = 4
+N_CONTROLS = 2
+
+X_REF = np.zeros(N_STATES)
+
+g = 9.8
+
+VERBOSE = True
+
+K_HIP = 500.0
+D_HIP = 50.0
+
+CTRL_LIMIT = 30.0
+
+# 新增：驱动控制参数
+TARGET_VELOCITY = 0.0  # 目标速度 (m/s)
+TARGET_POSITION = None  # 目标位置 (None 表示不启用位置控制)
+K_VEL = 5.0  # 速度控制增益
+K_POS = 2.0  # 位置控制增益
+
+# 新增：轮子半径（用于速度转换）
+WHEEL_RADIUS = 0.08  # 轮子半径 (m)
+
+# 新增：运行模式配置
+HEADLESS_MODE = os.environ.get("HEADLESS", "false").lower() == "true"  # 无头模式
+
+
+# ===================== 2. 模型加载与基础函数 =====================
+model = mujoco.MjModel.from_xml_path(XML_PATH)
+data = mujoco.MjData(model)
+
+
+def compute_theoretical_AB(data, model, r=0.08):
+    """从模型参数计算四维轮子驱动倒立摆线性化 A、B 矩阵。
+    状态：[wheel_pos, wheel_vel, body_pitch, body_pitch_vel]
+    控制：轮子力矩 u
+    
+    参数：
+        data: MuJoCo 数据对象
+        model: MuJoCo 模型对象
+        r: 轮子半径 (默认 0.0935m)
+    
+    返回：
+        A: 4x4 状态矩阵
+        B: 4x1 输入矩阵
+    """
+    right_wheel_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "right_wheel_body")
+    if right_wheel_id == -1:
+        raise ValueError("未找到名为 'right_wheel' 的刚体，请检查模型定义。")
+    left_wheel_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "left_wheel_body")
+    if left_wheel_id == -1:
+        raise ValueError("未找到名为 'left_wheel' 的刚体，请检查模型定义。")
+    total_mass = float(np.sum(model.body_mass))
+    m = total_mass - model.body_mass[right_wheel_id]-model.body_mass[left_wheel_id]  # 躯干质量
+    M = model.body_mass[right_wheel_id] + model.body_mass[left_wheel_id]  # 轮子等其他质量
+    
+    # 获取重力加速度，优先从模型配置获取
+    g = abs(model.opt.gravity[2]) if model.opt.gravity[2] != 0 else 9.81
+    
+    # 使用躯干高度作为摆长近似 (qpos[2] 为自由根节点的 z 位置)
+    h = 0.1668  # 直接使用已知的摆长值，避免从模型中提取可能不准确的高度
+    
+    # 检查除零风险
+    if h == 0:
+        raise ValueError("摆长 h 为 0，无法计算线性化矩阵。")
+    if r == 0:
+        raise ValueError("轮子半径 r 为 0，无法计算线性化矩阵。")
+    if total_mass == 0:
+        raise ValueError("总质量为 0，无法计算线性化矩阵。")
+    
+    I_body = m * h * h / 3.0
+    
+    # 系统总惯量 (轮子平动 + 躯干转动)
+    I_total = (M + m) * I_body + (M + m) * m * h * h
+    
+    # 线性化 A 矩阵 (4x4)
+    # 基于拉格朗日方程推导的标准轮式倒立摆模型
+    A = np.array([
+        [0, 1, 0, 0],                                    # d(wheel_pos)/dt = wheel_vel
+        [0, 0, -(m * m * g * h * h) / I_total, 0],       # d(wheel_vel)/dt 耦合项
+        [0, 0, 0, 1],                                    # d(body_pitch)/dt = body_pitch_vel
+        [0, 0, ((M + m) * m * g * h) / I_total, 0]       # d(body_pitch_vel)/dt 重力项
+    ])
+    
+    # 线性化 B 矩阵 (4x1)
+    # 控制输入为轮子力矩 τ，通过 F = τ/r 转化为水平力
+    B = np.array([
+        [0],
+        [(I_body + m * h * h) / (I_total * r)],          # 轮子加速度项
+        [0],
+        [-(M + m) * h / (I_total * r)]                   # 躯干角加速度项
+    ])
+    return A, B
+
+
+# 关节/执行器名称映射（需与你的 XML 模型一致）
+WHEEL_JOINTS = ["left_wheel_joint", "right_wheel_joint"]
+ACTUATORS = [
+    "left_wheel_motor", "right_wheel_motor",
+]
+
+
+def get_state(data):
+    """采集四维状态向量：[wheel_pos, wheel_vel, body_pitch, body_pitch_vel]
+    
+    状态说明：
+        - wheel_pos: 左轮关节位置 (假设左右对称)
+        - wheel_vel: 左轮关节速度
+        - body_pitch: 躯干俯仰角 (从四元数提取)
+        - body_pitch_vel: 躯干俯仰角速度 (角速度 x 分量，修改：原为 y 分量)
+    
+    MuJoCo 自由根节点数据结构：
+        - qpos[0:3]: 位置 (x, y, z)
+        - qpos[3:7]: 四元数 (w, x, y, z)
+        - qvel[0:3]: 线速度 (vx, vy, vz)
+        - qvel[3:6]: 角速度 (wx, wy, wz)
+    
+    返回：
+        np.array: 4 维状态向量
+    """
+    # 安全性检查：确保数据向量长度足够，防止索引越界
+    assert len(data.qpos) >= 7, f"data.qpos 长度不足 (当前{len(data.qpos)}), 无法提取基座四元数"
+    assert len(data.qvel) >= 5, f"data.qvel 长度不足 (当前{len(data.qvel)}), 无法提取基座角速度"
+    
+    # 轮子位移：使用左轮关节位置（假设对称）
+    # 注意：若关节不存在，此处会抛出异常，建议确保模型加载正确
+    wheel_pos = data.joint("left_wheel_joint").qpos[0]
+    
+    # 轮子速度
+    wheel_vel = data.joint("left_wheel_joint").qvel[0]
+    
+    # 躯干俯仰角：从四元数提取 pitch
+    # qpos[3:7] 对应四元数 [w, x, y, z]
+    base_quat = data.qpos[3:7]
+    base_euler = quat2euler(base_quat)
+    body_pitch = base_euler[0]  # 修改：pitch 角 (索引 0 对应 X 轴旋转，原为索引 1)
+    
+    # 躯干俯仰角速度：角速度的 x 分量
+    # qvel[3:6] 对应角速度 [wx, wy, wz]，索引 3 为 wx（修改：原为索引 4 的 wy）
+    body_pitch_vel = data.qvel[3]
+    
+    return np.array([wheel_pos, wheel_vel, body_pitch, body_pitch_vel])
+
+
+def set_actuator_ctrl(data, u, fix_hips=True, k_hip=K_HIP, d_hip=D_HIP):
+    """将控制输入映射到 MuJoCo 执行器
+    
+    参数：
+        data: MuJoCo 数据对象
+        u: 2 维控制输入，只有轮子电机
+        fix_hips: 是否固定髋关节 (已锁定，无需控制)
+        k_hip: 髋关节比例增益
+        d_hip: 髋关节微分增益
+    """
+    if VERBOSE:
+        print(f"控制输入 u: {u}")
+    
+    for i, act_name in enumerate(ACTUATORS):
+        # 轮子电机：使用 LQR 控制
+        # 注意：如果轮子转的方向与预期相反，可能需要在这里调整符号
+        # 尝试：u_clamped = np.clip(-u[i], -CTRL_LIMIT, CTRL_LIMIT)  # 如果方向反了
+        u_clamped = np.clip(u[i], -CTRL_LIMIT, CTRL_LIMIT)
+        
+        data.actuator(act_name).ctrl[0] = u_clamped
+        
+        if VERBOSE:
+            print(f"  {act_name}: {u_clamped}")
+
+
+def reset_to_equilibrium(model, data):
+    """重置机器人到平衡态
+    
+    初始状态设置：
+        - 位置：原点 (0, 0, 0.35)  # 修改：与 XML 保持一致，提高初始高度
+        - 姿态：直立 (单位四元数)
+        - 速度：全部为零
+        - 关节：全部归零
+    """
+    mujoco.mj_resetData(model, data)
+    
+    # 设置自由根关节的位置和姿态
+    # qpos[0:3] = 位置 (x, y, z)
+    # qpos[3:7] = 四元数 (w, x, y, z)
+    data.qpos[0] = 0.0   # x
+    data.qpos[1] = 0.0   # y
+    data.qpos[2] = 0.35  # z (修改：与 XML 基座位置保持一致，避免轮子穿地)
+    
+    # 使用单位四元数表示直立姿态 [1, 0, 0, 0]
+    # 如需小角度扰动，使用正确的四元数表示
+    initial_pitch = 0  # 修改：初始俯仰角
+    data.qpos[3] = np.cos(initial_pitch / 2.0)   # w
+    data.qpos[4] = 0.0                            # x
+    data.qpos[5] = np.sin(initial_pitch / 2.0)   # y
+    data.qpos[6] = 0.0                            # z
+    
+    # 仅设置轮子关节为 0
+    for j in WHEEL_JOINTS:
+        joint_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, j)
+        if joint_id != -1:
+            # 修改：使用 int() 确保索引为整数类型，避免 IndexError
+            qpos_adr = int(model.jnt_qposadr[joint_id])
+            data.qpos[qpos_adr] = 0.0
+            # 新增：同时重置关节速度为 0
+            # 修改：使用 jnt_dofadr 而非 jnt_vel（MuJoCo 正确属性）
+            qvel_adr = int(model.jnt_dofadr[joint_id])
+            data.qvel[qvel_adr] = 0.0
+    
+    # 重置所有速度为 0
+    data.qvel[:] = 0.0
+    
+    # 重置执行器控制
+    for act in ACTUATORS:
+        data.actuator(act).ctrl[0] = 0.0
+    
+    # 前向计算以更新导出的量
+    mujoco.mj_forward(model, data)
+
+
+def set_target_velocity(velocity):
+    """设置目标速度
+    
+    参数：
+        velocity: 目标速度 (m/s)，正数向前，负数向后
+    """
+    global TARGET_VELOCITY, TARGET_POSITION
+    TARGET_VELOCITY = velocity
+    TARGET_POSITION = None
+    if VERBOSE:
+        print(f"[控制接口] 目标速度设置为：{velocity} m/s")
+
+
+def set_target_position(position):
+    """设置目标位置
+    
+    参数：
+        position: 目标位置 (m)
+    """
+    global TARGET_POSITION, TARGET_VELOCITY
+    TARGET_POSITION = position
+    TARGET_VELOCITY = 0.0
+    if VERBOSE:
+        print(f"[控制接口] 目标位置设置为：{position} m")
+
+
+def compute_drive_torque(data, model, wheel_pos, wheel_vel):
+    """计算驱动扭矩 u2（速度/位置控制）
+    
+    参数：
+        data: MuJoCo 数据对象
+        model: MuJoCo 模型对象
+        wheel_pos: 当前轮子关节位置 (rad)
+        wheel_vel: 当前轮子关节角速度 (rad/s)
+    
+    返回：
+        u_drive: 驱动扭矩 (2 维数组，左右轮相同)
+    """
+    global TARGET_VELOCITY, TARGET_POSITION, K_VEL, K_POS, WHEEL_RADIUS
+    
+    u_drive = np.zeros(N_CONTROLS)
+    
+    # 将轮子角速度转换为线速度：v = ω * r
+    wheel_linear_vel = wheel_vel * WHEEL_RADIUS
+    
+    # 将轮子关节位置转换为线位移：s = θ * r
+    wheel_linear_pos = wheel_pos * WHEEL_RADIUS
+    
+    if TARGET_POSITION is not None:
+        # 位置控制模式
+        pos_error = TARGET_POSITION - wheel_linear_pos
+        u_drive[0] = K_POS * pos_error - K_VEL * wheel_linear_vel
+        u_drive[1] = u_drive[0]
+        if VERBOSE and np.random.rand() < 0.01:
+            print(f"[驱动控制] 位置模式：error={pos_error:.4f}, u_drive={u_drive[0]:.4f}")
+    else:
+        # 速度控制模式
+        vel_error = TARGET_VELOCITY - wheel_linear_vel
+        u_drive[0] = K_VEL * vel_error
+        u_drive[1] = u_drive[0]
+        if VERBOSE and np.random.rand() < 0.01:
+            print(f"[驱动控制] 速度模式：target={TARGET_VELOCITY:.4f}, current={wheel_linear_vel:.4f}, error={vel_error:.4f}, u_drive={u_drive[0]:.4f}")
+    
+    return np.clip(u_drive, -CTRL_LIMIT/2, CTRL_LIMIT/2)
+
+
+# ===================== 3. LQR 核心函数 =====================
+def compute_lqr_gain(A, B, Q, R, verbose=True):
+    """求解连续时间 LQR 增益矩阵 K。
+
+    参数：
+        A: 状态矩阵 (n x n)
+        B: 输入矩阵 (n x m)
+        Q: 状态权重矩阵 (n x n)
+        R: 控制权重矩阵 (m x m)
+        verbose: 是否输出诊断信息
+    
+    返回：
+        K: 增益矩阵 (m x n)
+    """
+    if verbose:
+        print("\n=== LQR 矩阵诊断 ===")
+        cond_A = np.linalg.cond(A)
+        print(f"A 矩阵条件数：{cond_A if cond_A != np.inf else 'singular'}")
+        print(f"B 矩阵条件数：{np.linalg.cond(B):.2e}")
+        print(f"A 范数：[{np.min(np.abs(A)):.2e}, {np.max(np.abs(A)):.2e}]")
+        print(f"B 范数：[{np.min(np.abs(B)):.2e}, {np.max(np.abs(B)):.2e}]")
+        rank_A = np.linalg.matrix_rank(A, tol=1e-6)
+        print(f"A 矩阵秩：{rank_A}/{A.shape[0]}")
+        eig_vals = np.linalg.eigvals(A)
+        print(f"A 特征值 (绝对值排序前 5): {np.sort(np.abs(eig_vals))[:5]}...\n")
+
+    # 少量正则化以避免条件不良
+    eps_reg = 1e-4
+    A_reg = A + eps_reg * np.eye(A.shape[0])
+    if verbose:
+        print(f"使用正则化 eps={eps_reg}, 条件数 {np.linalg.cond(A_reg):.2e}")
+
+    try:
+        P = solve_continuous_are(A_reg, B, Q, R)
+        if verbose:
+            print("LQR 求解成功")
+    except ValueError:
+        if verbose:
+            print("初次求解失败，尝试更大正则化")
+        for eps_reg in [1e-3, 1e-2, 1e-1, 0.5, 1.0]:
+            try:
+                A_reg = A + eps_reg * np.eye(A.shape[0])
+                P = solve_continuous_are(A_reg, B, Q, R)
+                if verbose:
+                    print(f"使用 eps={eps_reg} 成功")
+                break
+            except Exception:
+                continue
+        else:
+            if verbose:
+                print("所有正则化均失败，返回单位矩阵作为 P")
+            P = np.eye(A.shape[0])
+
+    return inv(R) @ B.T @ P
+
+
+# ===================== 4. 终端参数设置 =====================
+def get_terminal_input():
+    """从终端获取用户输入的目标速度
+    
+    返回：
+        velocity: 目标速度 (m/s)，None 表示退出
+    """
+    try:
+        user_input = input("\n[终端控制] 输入目标速度 (m/s)，或输入 'q' 退出：").strip()
+        if user_input.lower() == 'q':
+            return None
+        velocity = float(user_input)
+        return velocity
+    except ValueError:
+        print("[终端控制] 输入无效，请输入数字或 'q'")
+        return 0.0
+    except EOFError:
+        print("\n[终端控制] 检测到退出信号")
+        return None
+
+
+# ===================== 5. 主仿真循环 =====================
+def main():
+    """主函数：初始化仿真并运行 LQR 控制"""
+    global HEADLESS_MODE
+    
+    # 检测运行环境
+    if HEADLESS_MODE or os.environ.get("DISPLAY") is None:
+        HEADLESS_MODE = True
+        print("[运行模式] 无头模式 (Headless) - 不使用图形界面")
+    else:
+        print("[运行模式] 可视化模式 - 使用图形界面")
+    
+    reset_to_equilibrium(model, data)
+    
+    A, B = compute_theoretical_AB(data, model)
+    if VERBOSE:
+        print("理论 A,B 矩阵:")
+        print(A)
+        print(B)
+
+    Q_small = np.diag([0, 15, 500, 800])
+    R_small = np.array([[10]])
+    K_small = compute_lqr_gain(A, B, Q_small, R_small, verbose=VERBOSE)
+    if VERBOSE:
+        print("K_small (4x1):\n", K_small)
+    
+    K = np.zeros((N_CONTROLS, N_STATES))
+    K[0, :4] = K_small[0, :]
+    K[1, :4] = K_small[0, :]
+    if VERBOSE:
+        print("扩展后 K (2x4):\n", K)
+    
+    # 获取初始目标速度
+    initial_velocity = get_terminal_input()
+    if initial_velocity is None:
+        print("[终端控制] 用户选择退出")
+        return
+    set_target_velocity(initial_velocity)
+    
+    import time
+    
+    if HEADLESS_MODE:
+        # 无头模式：使用 Renderer 渲染，不显示窗口
+        print("[仿真] 无头模式启动，按 Ctrl+C 停止")
+        renderer = mujoco.Renderer(model)
+        
+        step_count = 0
+        reset_interval = 500
+        
+        try:
+            while True:
+                step_start = data.time
+
+                x_current = get_state(data)
+                x_error = x_current - X_REF
+                
+                if step_count % reset_interval == 0:
+                    for j in WHEEL_JOINTS:
+                        joint_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, j)
+                        if joint_id != -1:
+                            qpos_adr = int(model.jnt_qposadr[joint_id])
+                            data.qpos[qpos_adr] = 0.0
+                
+                # 计算平衡扭矩 u1 (LQR 控制)
+                u_balance = -K @ x_error
+                
+                # 计算驱动扭矩 u2 (速度/位置控制)
+                u_drive = compute_drive_torque(data, model, x_current[0], x_current[1])
+                
+                # 总扭矩 = 平衡扭矩 + 驱动扭矩
+                u = u_balance + u_drive
+                
+                u = np.clip(u, -CTRL_LIMIT, CTRL_LIMIT)
+                
+                set_actuator_ctrl(data, u, fix_hips=True)
+
+                mujoco.mj_step(model, data)
+                
+                # 定期渲染（可选，用于生成视频或调试）
+                if step_count % 100 == 0 and VERBOSE:
+                    renderer.update_scene(data)
+                
+                step_count += 1
+                
+                if step_count % 500 == 0 and VERBOSE:
+                    print(f"step {step_count}: "
+                          f"wheel_pos={x_current[0]:.4f}, "
+                          f"wheel_vel={x_current[1]:.4f}, "
+                          f"body_pitch={x_current[2]:.4f}, "
+                          f"body_pitch_vel={x_current[3]:.4f}, "
+                          f"u_max={np.max(np.abs(u)):.2f}, "
+                          f"target_vel={TARGET_VELOCITY:.2f}")
+
+        except KeyboardInterrupt:
+            print("\n[仿真] 用户中断，停止仿真")
+        finally:
+            renderer.close()
+    
+    else:
+        # 可视化模式：使用 viewer
+        with viewer.launch_passive(model, data) as v:
+            if VERBOSE:
+                print("仿真启动，从平衡位置开始 LQR 控制")
+            
+            step_count = 0
+            reset_interval = 500
+            
+            while v.is_running():
+                step_start = data.time
+
+                x_current = get_state(data)
+                x_error = x_current - X_REF
+                
+                if step_count % reset_interval == 0:
+                    for j in WHEEL_JOINTS:
+                        joint_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, j)
+                        if joint_id != -1:
+                            qpos_adr = int(model.jnt_qposadr[joint_id])
+                            data.qpos[qpos_adr] = 0.0
+                
+                # 计算平衡扭矩 u1 (LQR 控制)
+                u_balance = -K @ x_error
+                
+                # 计算驱动扭矩 u2 (速度/位置控制)
+                u_drive = compute_drive_torque(data, model, x_current[0], x_current[1])
+                
+                # 总扭矩 = 平衡扭矩 + 驱动扭矩
+                u = u_balance + u_drive
+                
+                u = np.clip(u, -CTRL_LIMIT, CTRL_LIMIT)
+                
+                set_actuator_ctrl(data, u, fix_hips=True)
+
+                mujoco.mj_step(model, data)
+                v.sync()
+
+                step_count += 1
+                
+                if step_count % 500 == 0 and VERBOSE:
+                    print(f"step {step_count}: "
+                          f"wheel_pos={x_current[0]:.4f}, "
+                          f"wheel_vel={x_current[1]:.4f}, "
+                          f"body_pitch={x_current[2]:.4f}, "
+                          f"body_pitch_vel={x_current[3]:.4f}, "
+                          f"u_max={np.max(np.abs(u)):.2f}, "
+                          f"target_vel={TARGET_VELOCITY:.2f}")
+
+                dt = model.opt.timestep
+
+
+if __name__ == "__main__":
+    main()

@@ -125,7 +125,7 @@
       <joint name="left_behind_hip_joint" type="hinge" pos="-0.075 -0.068 -0.104" axis="1 0 0"  class="joint_default"/>
       <geom type="mesh" mesh="2026_fei_ka_lun_tui____left_behind_thigh_3__lun_tui_xiao_tui__1" mass="0.0091" class="thigh_default"/>
       <body name="left_behind_calf_body" pos="0 0 0">
-        <joint name="left_behind_knee_joint" type="hinge" pos="-0.080 -0.06543 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="true" range="-1.57 1.57"/>
+        <joint name="left_behind_knee_joint" type="hinge" pos="-0.080 -0.06543 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="false" range="-1.57 1.57"/>
         <geom type="mesh" mesh="2026_fei_ka_lun_tui____left_behind_calf_1__lun_tui_da_tui__1" mass="0.0124" class="calf_default"/>
       </body>
     </body>
@@ -135,7 +135,7 @@
       <joint name="left_front_hip_joint" type="hinge" pos="-0.075 0.068 -0.104" axis="1 0 0"  class="joint_default"/>
       <geom type="mesh" mesh="2026_fei_ka_lun_tui____left_front_thigh_1__lun_tui_xiao_tui__1" mass="0.0091" class="thigh_default"/>
       <body name="left_front_calf_body" pos="0 0 0">
-        <joint name="left_front_knee_joint" type="hinge" pos="-0.080 0.07056 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="true" range="-1.57 1.57"/>
+        <joint name="left_front_knee_joint" type="hinge" pos="-0.080 0.07056 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="false" range="-1.57 1.57"/>
         <geom type="mesh" mesh="2026_fei_ka_lun_tui____left_front_calf_1__lun_tui_da_tui__1" mass="0.0124" class="calf_default"/>
         <body name="left_wheel_body" pos="0 0 0">
           <joint name="left_wheel_joint" type="hinge" pos="0.0935 0.0026 -0.223" axis="1 0 0" limited="false" class="joint_default"/>
@@ -150,7 +150,7 @@
       <joint name="right_behind_hip_joint" type="hinge" pos="0.075 -0.068 -0.104" axis="1 0 0"  class="joint_default"/>
       <geom type="mesh" mesh="2026_fei_ka_lun_tui____right_behind_thigh_1__lun_tui_xiao_tui__1" mass="0.0091" class="thigh_default"/>
       <body name="right_behind_calf_body" pos="0 0 0">
-        <joint name="right_behind_knee_joint" type="hinge" pos="0.080 -0.06543 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="true" range="-1.57 1.57"/>
+        <joint name="right_behind_knee_joint" type="hinge" pos="0.080 -0.06543 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="false" range="-1.57 1.57"/>
         <geom type="mesh" mesh="2026_fei_ka_lun_tui____right_behind_calf_1__lun_tui_da_tui__1" mass="0.0124" class="calf_default"/>
       </body>
     </body>
@@ -160,7 +160,7 @@
       <joint name="right_front_hip_joint" type="hinge" pos="0.075 0.068 -0.104" axis="1 0 0"  class="joint_default"/>
       <geom type="mesh" mesh="2026_fei_ka_lun_tui____right_front_thigh_1__lun_tui_xiao_tui__1" mass="0.0091" class="thigh_default"/>
       <body name="right_front_calf_body" pos="0 0 0">
-        <joint name="right_front_knee_joint" type="hinge" pos="0.080 0.07056 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="true" range="-1.57 1.57"/>
+        <joint name="right_front_knee_joint" type="hinge" pos="0.080 0.07056 -0.164" axis="1 0 0"  class="joint_default" damping="0.1" limited="false" range="-1.57 1.57"/>
         <geom type="mesh" mesh="2026_fei_ka_lun_tui____right_front_calf_1__lun_tui_da_tui__1" mass="0.0124" class="calf_default"/>
         <body name="right_wheel_body" pos="0 0 0">
             <joint name="right_wheel_joint" type="hinge" pos="-0.0935 0.0026 -0.223" axis="1 0 0" limited="false" class="joint_default"/>
