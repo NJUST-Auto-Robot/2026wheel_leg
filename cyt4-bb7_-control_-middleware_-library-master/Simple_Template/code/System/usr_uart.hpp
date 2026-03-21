@@ -21,6 +21,7 @@
  */
 #pragma once
 #include "zf_common_headfile.h"
+#include "D:\BaiduNetdiskDownload\2026feika\code\workplace\cyt4-bb7_-control_-middleware_-library-master\Simple_Template\code\Controller\LQR.h"
 #define UART0_BUFSIZE 256
 #define UART1_BUFSIZE 256
 #define UART2_BUFSIZE 256

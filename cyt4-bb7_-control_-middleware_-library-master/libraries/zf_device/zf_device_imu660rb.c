@@ -62,8 +62,8 @@
 #include "zf_device_config.h"
 #include "zf_device_imu660rb.h"
 
-int16 imu660rb_gyro_x = 0, imu660rb_gyro_y = 0, imu660rb_gyro_z = 0;            // 三轴陀螺仪数据   gyro (陀螺仪)
-int16 imu660rb_acc_x = 0, imu660rb_acc_y = 0, imu660rb_acc_z = 0;               // 三轴加速度计数据 acc  (accelerometer 加速度计)
+float imu660rb_gyro_x = 0, imu660rb_gyro_y = 0, imu660rb_gyro_z = 0;            // 三轴陀螺仪数据   gyro (陀螺仪)
+float imu660rb_acc_x = 0, imu660rb_acc_y = 0, imu660rb_acc_z = 0;               // 三轴加速度计数据 acc  (accelerometer 加速度计)
 
 #if IMU660RB_USE_SOFT_IIC
 static soft_iic_info_struct imu660rb_iic_struct;

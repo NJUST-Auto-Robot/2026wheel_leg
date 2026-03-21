@@ -45,7 +45,6 @@
  * 2024-1-9      pudding            first version
  ********************************************************************************************************************/
 
-#include "Module/SoundProcess/sound_process.hpp"
 #include "System/usr_uart.hpp"
 #include "Utility/UpperMonitor/UpperMonitor.hpp"
 #include "zf_common_headfile.h"

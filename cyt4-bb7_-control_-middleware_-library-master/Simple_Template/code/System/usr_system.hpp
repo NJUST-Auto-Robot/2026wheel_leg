@@ -13,9 +13,6 @@
 #pragma once
 #include "cmsis_os.h"
 
-// 如果通过上位机观察ADC的数据
-#define ADC_DATA_VIEW (0)
-
 #define Tiny_Stack_Size (64)
 #define Small_Stack_Size (128)
 #define Normal_Stack_Size (256)
@@ -30,12 +27,6 @@
 #define PriorityHigh (6)
 #define PrioritySuperHigh (7)
 #define PriorityRealtime (8)
-
-// #define EXTI_RIGHT (P13_0)
-// #define EXTI_UP (P13_1)
-// #define EXTI_LEFT (P13_2)
-// #define EXTI_MIDDLE (P13_3)
-// #define EXTI_DOWN (P13_4)
 
 /**
   @brief 连接状态
@@ -52,9 +43,6 @@ extern "C" {
 
 // 用户系统初始化函数
 void usrSystemInit(void);
-
-// oled主任务函数
-// void oledTask(void *argument);
 
 #ifdef __cplusplus
 }

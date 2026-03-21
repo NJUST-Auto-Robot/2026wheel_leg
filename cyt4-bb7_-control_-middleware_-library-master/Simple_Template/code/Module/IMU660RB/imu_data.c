@@ -74,11 +74,6 @@ void imu_data_check(imu_state_t *state)
 
 void imu_tx_data(imu_state_t *state)
 {
-    // printf("\r\nimu660rb acc data:  x=%f, y=%f, z=%f\r\n", 
-    //         state->raw_data.acc[x],  state->raw_data.acc[y],  state->raw_data.acc[z]);
-    // printf("\r\nimu660rb gyro data: x=%f, y=%f, z=%f\r\n", 
-    //         state->raw_data.gyro[x], state->raw_data.gyro[y], state->raw_data.gyro[z]);
-    // 正确打印融合滤波得到的欧拉角，保留两位小数，更直观地对应真实世界角度
     printf("\r\nimu660rb angle data:  roll=%d°, pitch=%d°, yaw=%d°\r\n", 
             (int)state->angles.roll_in_cordinate, (int)state->angles.pitch_in_cordinate, (int)state->angles.yaw_in_cordinate);
 }
@@ -120,4 +115,12 @@ void imu_cordinate_convert(imu_state_t *state)
         state->angles.pitch_in_cordinate =  state->angles.pitch - pitch_ref;  // 坐标系转换后的俯仰角
         state->angles.yaw_in_cordinate   =  state->angles.yaw   - yaw_ref;    // 坐标系转换后的偏航角
     }
+}
+
+void imu_acceleration_compute(imu_state_t *state)
+{
+    // 计算欧拉角加速度
+    state->angles.roll_acceleration = (state->angles.roll - state->angles.last_roll) / state->dt;   // 横滚角加速度
+    state->angles.pitch_acceleration = (state->angles.pitch - state->angles.last_pitch) / state->dt; // 俯仰角加速度
+    state->angles.yaw_acceleration = (state->angles.yaw - state->angles.last_yaw) / state->dt;     // 偏航角加速度
 }

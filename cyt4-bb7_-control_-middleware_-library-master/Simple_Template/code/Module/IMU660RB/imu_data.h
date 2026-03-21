@@ -35,6 +35,9 @@ typedef struct {
     float roll_in_cordinate;   // 坐标系转换后的横滚角 (°)
     float pitch_in_cordinate;  // 坐标系转换后的俯仰角 (°)
     float yaw_in_cordinate;    // 坐标系转换后的偏航角 (°)  
+    float roll_acceleration; // 横滚角加速度 (°/s?)
+    float pitch_acceleration; // 俯仰角加速度 (°/s?)
+    float yaw_acceleration;   // 偏航角加速度 (°/s?)
 } euler_angles_t;
 
 typedef struct {
@@ -56,7 +59,7 @@ void imu_tx_data(imu_state_t *state);
 void imu_data_check(imu_state_t *state);
 void imu_cordinate_convert(imu_state_t *state);
 void imu_zero_calibration(imu_state_t *state);
-
+void imu_acceleration_compute(imu_state_t *state);
 #ifdef __cplusplus
 }
 #endif

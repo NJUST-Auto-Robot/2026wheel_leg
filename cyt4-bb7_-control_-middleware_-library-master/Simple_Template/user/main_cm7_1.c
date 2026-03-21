@@ -45,57 +45,25 @@
  * 2024-1-4       pudding            first version
  ********************************************************************************************************************/
 #ifdef ENABLE_SOUND_PROCESS
-#include "Module/SoundProcess/sound_process.hpp"
 #endif
 #include "cmsis_os.h"
-#include "system/usr_system.hpp"
+#include "system/usr_system_M71.hpp"
 #include "zf_common_headfile.h"
 
-// 本例程是开源库空工程 可用作移植或者测试各类内外设
-// 本例程是开源库空工程 可用作移植或者测试各类内外设
-// 本例程是开源库空工程 可用作移植或者测试各类内外设
-#define RUN_LED (P14_4)
-// #define RUN_LED (P19_0)
-#define ERR_LED (P14_5)
-#define EN_LED (P05_4)
-
-// vofa+的裸机程序
-void vofaTaskForBareMetal(void);
 
 // **************************** 代码区域 ****************************
 
 int main(void) {
   clock_init(SYSTEM_CLOCK_250M); // 时钟配置及系统初始化<务必保留>
   debug_init();                  // 调试串口信息初始化
-  // uint32_t send_sound_azimuth = 0;
 
   // 此处编写用户代码 例如外设初始化代码等
   usrSystemInit(); // 初始化系统
-#ifndef ENABLE_SOUND_PROCESS
   osKernelInitialize(); // 初始化FreeRTOS内核
   osKernelStart();      // 开启FreeRTOS内核调度
-#endif                  // ! ENABLE_SOUND_PROCESS
-
   // 此处编写用户代码 例如外设初始化代码等
   while (true) {
-#ifdef ENABLE_SOUND_PROCESS
-    // 音频处理函数
-    soundProcessLoop(true, CoordinatesTriangularPositioning); // 三角形反正切
-    // soundProcessLoop(true,AverageBilateralPositioning);  // 双边平均
-    // soundProcessLoop(true,HorizontalBilateralPositioning);  // 横向渐近线
-    // soundProcessLoop(true,VerticalBilateralPositioning);  // 纵向渐近线
 
-    // 发送计算出来的方位角数据给核心M7_0
-    // 发送的方位角范围是0-360，而原始定义是-180-180，因此需要转换一下
-    send_sound_azimuth =
-        (uint32_t)(soundAzimuth < 0 ? 360 + soundAzimuth : soundAzimuth);
-    ipc_send_data(send_sound_azimuth);
-
-#if ADC_DATA_VIEW
-    // 上位机发送任务
-    vofaTaskForBareMetal();
-#endif
-#endif
   }
 }
 

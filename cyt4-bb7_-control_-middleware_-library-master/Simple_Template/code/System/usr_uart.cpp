@@ -55,7 +55,7 @@ uint32_t uart_buffer_len_s[5] = {UART0_BUFSIZE, UART1_BUFSIZE, UART2_BUFSIZE,
 uart_handle_callback_t uart_handle_callback_s[5] = {
     (uart_handle_callback_t)debug_interrupt_handler,    // 串口0中断回调函数
     NULL,    // 串口1中断回调函数
-    NULL,    // 串口2中断回调函数
+    (uart_handle_callback_t)process_uart2_fifo,    // 串口2中断回调函数
     NULL,    // 串口3中断回调函数
     NULL     // 串口4中断回调函数
 };
@@ -144,12 +144,6 @@ void usrUartInit(void) {
 template <uint8_t uart_id> void uart_read_byte(void) {
   uint8_t rec_sta = 0;
   if (puart_fifo_s[uart_id]->init_state == true) {
-    /* 以下有3种方式读取串口数据 */
-    // 1. 一次读取
-    // uart_query_byte(DEBUG_UART_INDEX, &debug_uart_data);
-    // 2. 有数据才读取
-    // debug_uart_data = uart_read_byte(DEBUG_UART_INDEX);
-    // 3. 有数据才读取，超时会退出
     uint8_t get_byte;
     rec_sta = uart_read_self_quit((uart_index_enum)uart_id, &get_byte, 1000);
     if (rec_sta) {
