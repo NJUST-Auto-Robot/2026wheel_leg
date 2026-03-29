@@ -1,0 +1,20 @@
+{
+  "workspace": {
+    "path": "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\cyt4bb7.eww"
+  },
+  "workspaces": {
+    "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\cyt4bb7.eww": {
+      "configs": {
+        "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\project_config\\cyt4bb7_cm_0_plus.ewp": "Debug",
+        "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\project_config\\cyt4bb7_cm_7_0.ewp": "Debug",
+        "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\project_config\\cyt4bb7_cm_7_1.ewp": "Debug"
+      },
+      "selected": {
+        "path": "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\project_config\\cyt4bb7_cm_0_plus.ewp"
+      }
+    }
+  },
+  "workbench": {
+    "path": "D:\\IAR"
+  }
+}
