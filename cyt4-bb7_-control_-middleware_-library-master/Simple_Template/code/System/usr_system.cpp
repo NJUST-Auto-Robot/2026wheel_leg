@@ -292,7 +292,7 @@ void IMU660RBTask(void *argument) {
      {  
         imu_mahony_update(&imu660rb.raw_data, imu660rb.dt, &imu660rb.angles);
         if(imu660rb.imu_data_true >= 0) {
-          imu_data_check(&imu660rb);           // 检查数据有效性
+          imu_data_check(&imu660rb);        // 检查数据有效性
         }  
         if(imu660rb.imu_data_true == -1) {
           imu_cordinate_convert(&imu660rb); // 坐标系转换
