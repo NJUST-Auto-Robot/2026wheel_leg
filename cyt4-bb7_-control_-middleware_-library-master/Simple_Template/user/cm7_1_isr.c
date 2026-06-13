@@ -231,7 +231,7 @@ void uart4_isr(void) {
   {
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4),
                             CY_SCB_UART_RX_NOT_EMPTY); // 清除接收中断标志位
-    uart4_read_byte(); // 读取一个字节到对应的串口fifo
+    uart4_callback(); // 直接在中断回调中完成 CRSF 数据处理
 
   } else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_4)) &
              CY_SCB_UART_TX_DONE) // 串口4发送中断

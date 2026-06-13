@@ -24,9 +24,10 @@
 #include "D:\BaiduNetdiskDownload\2026feika\code\workplace\cyt4-bb7_-control_-middleware_-library-master\Simple_Template\code\Controller\LQR.h"
 #define UART0_BUFSIZE 256
 #define UART1_BUFSIZE 256
-#define UART2_BUFSIZE 256
+#define UART2_BUFSIZE 512
 #define UART3_BUFSIZE 256
 #define UART4_BUFSIZE 256
+#define UART5_BUFSIZE 256
 
 typedef uint32_t (*uart_handle_callback_t)(uint8_t *buf, uint32_t len);
 typedef bool (*Send_DMA_Fun_t)(uint8_t *pData, uint16_t Size);
@@ -41,7 +42,7 @@ extern uint8_t* uart_buffer_s[];
 extern uint32_t uart_buffer_len_s[];
 
 // 串口中断回调函数集合
-extern uart_handle_callback_t uart_handle_callback_s[5];
+extern uart_handle_callback_t uart_handle_callback_s[6];
 
 // 初始化一些中断读字节的函数指针以供isr.c文件使用
 extern void (*uart0_read_byte)(void);
@@ -49,9 +50,10 @@ extern void (*uart1_read_byte)(void);
 extern void (*uart2_read_byte)(void);
 extern void (*uart3_read_byte)(void);
 extern void (*uart4_read_byte)(void);
+extern void (*uart5_read_byte)(void);   
 
 // 初始化函数指针数组，以供c调用
-extern Send_DMA_Fun_t UartSendArray[5];
+extern Send_DMA_Fun_t UartSendArray[6];
 
 #ifdef __cplusplus
 extern "C" {

@@ -32,6 +32,8 @@
 #include "Controller/LQR.h"
 #include "Controller/Motor.h"
 #include "Controller/VMC.h"
+#include "Controller/CRSF.h"
+#include "Controller/CRC8.h"
 
 // 外设宏定义
 #define TEST_LED (P19_0)
@@ -45,7 +47,9 @@ float target_linear_speed = 0.0f;
 // 用于存储估算的车身高度 (单位 m)
 static float current_height = 0.0f; 
 static float vertical_velocity = 0.0f; // 垂直速度估算
-
+  // 定义 remap 宏，用于线性映射
+  #define REMAP_VALUE(val, in_min, in_max, out_min, out_max) \
+      ((float)(val - in_min) * (float)(out_max - out_min) / (float)(in_max - in_min) + (float)out_min)
 // 任务专属变量
 // 启动任务
 osThreadId_t defaultTaskHandle;
@@ -80,6 +84,15 @@ const osThreadAttr_t VMCTask_attributes = {
     .priority = (osPriority_t)osPriorityRealtime,
 };
 void VMCTask(void *argument);
+
+osThreadId_t CRSFTaskHandle;
+const osThreadAttr_t CRSFTask_attributes = {
+    .name = "CRSFTask" ,
+    .stack_size = 128 * 4,
+    .priority = (osPriority_t)osPriorityRealtime,
+};
+void CRSFTask(void *argument);
+
 
 uint16 delay_time = 0;
 uint8 led_state = 0;
@@ -117,6 +130,8 @@ void USR_SYSTEM::peripheralInit(void) {
 
   // 速度 PID（线速度闭环）参数（宏定义）
   MotorPID_Init(MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, MOTOR_PID_I_TERM_MAX, MOTOR_PID_OUT_MAX);
+
+  Crc8_init(0xD5);
 }   
 
 /**
@@ -129,14 +144,16 @@ void USR_SYSTEM::TaskCreate() {
   defaultTaskHandle = osThreadNew(defaultTask, NULL, &defaultTask_attributes);
 
   // 创建IMU惯导任务
-  IMU660RBTaskHandle = osThreadNew(IMU660RBTask, NULL, &IMU660RBTask_attributes);
+  //IMU660RBTaskHandle = osThreadNew(IMU660RBTask, NULL, &IMU660RBTask_attributes);
 
   // 创建控制任务
-  ControlTaskHandle = osThreadNew(ControlTask, NULL, &ControlTask_attributes);
+  //ControlTaskHandle = osThreadNew(ControlTask, NULL, &ControlTask_attributes);
 
   // 创建 VMC 控制任务
-  VMCTaskHandle = osThreadNew(VMCTask, NULL, &VMCTask_attributes);
+  //VMCTaskHandle = osThreadNew(VMCTask, NULL, &VMCTask_attributes);
 
+  // 创建 CRSF 任务
+  CRSFTaskHandle = osThreadNew(CRSFTask, NULL, &CRSFTask_attributes);
 }
 
 /**
@@ -331,3 +348,35 @@ void VMCTask(void *argument) {
   /* USER CODE END 5 */
 }
 
+void CRSFTask(void *argument) {
+  /* USER CODE BEGIN 5 */
+   
+  while(1)
+  { 
+    Crsf_Data_procees(); // 处理接收数据
+
+    if (CRSF_CH.ConnectState == SBUS_SIGNAL_OK) {
+      if (CRSF_CH.CH2 >= 992) {
+          target_linear_speed = REMAP_VALUE(CRSF_CH.CH2, 992, 1811, 0, 2);
+      } else {
+          target_linear_speed = REMAP_VALUE(CRSF_CH.CH2, 174, 992, -2, 0);
+      }
+
+    } else {
+      // 信号丢失或故障，速度归零
+      target_linear_speed = 0.0f;
+    }
+
+    // 通过串口5发送目标线速度
+    {
+      char speed_buf[32];
+      int speed_len = snprintf(speed_buf, sizeof(speed_buf), "target_linear_speed=%.2f\r\n", target_linear_speed);
+      if (speed_len > 0 && speed_len < (int)sizeof(speed_buf)) {
+        UartSendArray[4]((uint8_t*)speed_buf, (uint16_t)speed_len);
+      }
+    }
+
+    vTaskDelay(10);
+  }
+  /* USER CODE END 5 */
+}

@@ -193,13 +193,13 @@ uint32_t uart2_speed_callback(uint8_t *buf, uint32_t len) {
 }
 
 void process_uart2_fifo(void) {
-    uint32_t avail = fifo_used(uart_buffer_s[2]);
+    uint32_t avail = fifo_used(puart_fifo_s[2]);
     if (avail == 0) return;
 
     static uint8_t tmp[256];
     uint32_t readlen = avail;
     if (readlen > sizeof(tmp) - 1) readlen = sizeof(tmp) - 1;
-    if (fifo_read_buffer(uart_buffer_s[2], tmp, &readlen, FIFO_READ_AND_CLEAN) ==
+    if (fifo_read_buffer(puart_fifo_s[2], tmp, &readlen, FIFO_READ_AND_CLEAN) ==
         FIFO_SUCCESS) {
         uart2_speed_callback(tmp, readlen);
     }

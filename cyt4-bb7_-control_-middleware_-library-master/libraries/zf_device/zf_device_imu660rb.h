@@ -124,8 +124,8 @@
 extern "C" {
 #endif
 //================================================声明 IMU963RB 全局变量================================================
-extern int16 imu660rb_gyro_x, imu660rb_gyro_y, imu660rb_gyro_z;                   // 三轴陀螺仪数据      gyro (陀螺仪)
-extern int16 imu660rb_acc_x, imu660rb_acc_y, imu660rb_acc_z;                      // 三轴加速度计数据     acc (accelerometer 加速度计)
+extern float imu660rb_gyro_x, imu660rb_gyro_y, imu660rb_gyro_z;                   // 三轴陀螺仪数据      gyro (陀螺仪)
+extern float imu660rb_acc_x, imu660rb_acc_y, imu660rb_acc_z;                      // 三轴加速度计数据     acc (accelerometer 加速度计)
 //================================================声明 IMU963RB 全局变量================================================
 
 
