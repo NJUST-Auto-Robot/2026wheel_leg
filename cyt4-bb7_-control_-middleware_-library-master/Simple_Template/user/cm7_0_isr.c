@@ -108,7 +108,7 @@ void pit0_ch0_isr() {
 
 void pit0_ch1_isr() {   
   pit_isr_flag_clear(PIT_CH1); 
-  imu_read_data(&imu660rb);     // 100Hz频率读取IMU数据
+  imu660rb.imu_data_ready = true; // 定时器中断触发，重置数据就绪标志
 }
 
 void pit0_ch2_isr() { pit_isr_flag_clear(PIT_CH2); }
