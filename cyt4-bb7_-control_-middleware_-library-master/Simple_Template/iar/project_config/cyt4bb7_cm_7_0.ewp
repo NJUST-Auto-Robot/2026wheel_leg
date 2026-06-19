@@ -1122,12 +1122,39 @@
         <group>
             <name>Algorithm</name>
             <group>
-                <name>Mahony</name>
+                <name>Fusion</name>
                 <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\Mahony\mahony.c</name>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\Fusion.h</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\Mahony\mahony.h</name>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionAhrs.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionAhrs.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionAxes.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionCalibration.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionCompass.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionCompass.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionConvention.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionMath.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionOffset.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionOffset.h</name>
                 </file>
             </group>
         </group>

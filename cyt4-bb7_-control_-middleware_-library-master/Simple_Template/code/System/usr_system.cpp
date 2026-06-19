@@ -274,7 +274,7 @@ void defaultTask(void *argument) {
   { 
     gpio_toggle_level(P19_0);
     
-    vTaskDelay(500);
+    vTaskDelay(1000);
   /* USER CODE END 5 */
   }
 }
@@ -287,26 +287,23 @@ void defaultTask(void *argument) {
 void IMU660RBTask(void *argument) {
   /* USER CODE BEGIN 5 */
   while(1)
-  { 
-     if(imu660rb.imu_data_ready)
+  {  
+
+     if(imu660rb.imu_data_ready)//约19.2ms读取一次IMU数据
      {  
-        imu_mahony_update(&imu660rb.raw_data, imu660rb.dt, &imu660rb.angles);
+        imu_read_data(&imu660rb);       
         if(imu660rb.imu_data_true >= 0) {
           imu_data_check(&imu660rb);        // 检查数据有效性
         }  
         if(imu660rb.imu_data_true == -1) {
           imu_cordinate_convert(&imu660rb); // 坐标系转换
-          imu_zero_calibration(&imu660rb);  // 零偏校准
-          imu660rb.imu_data_true = -2;      // 数据处理完成，设置状态为-2，等待发送
+          imu_tx_data(&imu660rb);
         }
-        if(imu660rb.imu_data_true == -2) {
-          imu_tx_data(&imu660rb);           // 发送IMU数据
-          imu660rb.imu_data_true = -1;
-        }
+        
         imu660rb.imu_data_ready = false;    // 读取数据后，重置数据就绪标志
      }
      
-    vTaskDelay(10);
+    vTaskDelay(5);
   }
   /* USER CODE END 5 */
 }
