@@ -2,9 +2,10 @@
 #include "VMC.h"
 #include <string.h>
 float K[4]; // LQR增益矩阵
-float Wheel_position = 0.0f; // 电机位置
-float Wheel_Speed = 0.0f; // 电机速度
-float Wheel_acceleration = 0.0f; // 电机加速度
+float left_Wheel_position = 0.0f; // 左侧电机位置
+float right_Wheel_position = 0.0f; // 右侧电机位置
+float left_Wheel_Speed = 0.0f; // 左侧电机速度
+float right_Wheel_Speed = 0.0f; // 右侧电机速度
 static void mat4_copy(const float src[4][4], float dst[4][4]) {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -58,13 +59,36 @@ static void mat4_scale(const float a[4][4], float scale, float out[4][4]) {
     }
 }
 
+static void mat4_mul_vec(const float a[4][4], const float b[4], float out[4]) {
+    for (int i = 0; i < 4; i++) {
+        out[i] = 0.0f;
+        for (int j = 0; j < 4; j++) {
+            out[i] += a[i][j] * b[j];
+        }
+    }
+}
+
+static float vec4_dot(const float a[4], const float b[4]) {
+    float sum = 0.0f;
+    for (int i = 0; i < 4; i++) {
+        sum += a[i] * b[i];
+    }
+    return sum;
+}
+
+static void mat4_identity(float out[4][4]) {
+    memset(out, 0, sizeof(float) * 16);
+    for (int i = 0; i < 4; i++) {
+        out[i][i] = 1.0f;
+    }
+}
+
 void LQR_GetMatrices(float A[4][4], float B[4], float Q[4][4], float *R_out) {
     // A 矩阵
-    memset(A, 0, sizeof(float) * 16);
-    A[0][1] = 1.0f;
-    A[1][0] = A_10;
-    A[2][3] = 1.0f;
-    A[3][0] = A_30;
+    A[0][0] = A_00; A[0][1] = A_01; A[0][2] = A_02; A[0][3] = A_03;
+    A[1][0] = A_10; A[1][1] = A_11; A[1][2] = A_12; A[1][3] = A_13;
+    A[2][0] = A_20; A[2][1] = A_21; A[2][2] = A_22; A[2][3] = A_23;
+    A[3][0] = A_30; A[3][1] = A_31; A[3][2] = A_32; A[3][3] = A_33;
 
     // B 向量
     B[0] = B_00;
@@ -73,146 +97,86 @@ void LQR_GetMatrices(float A[4][4], float B[4], float Q[4][4], float *R_out) {
     B[3] = B_30;
 
     // Q 矩阵对角
-    memset(Q, 0, sizeof(float) * 16);
-    Q[0][0] = Q_00;
-    Q[1][1] = Q_11;
-    Q[2][2] = Q_22;
-    Q[3][3] = Q_33;
+    Q[0][0] = Q_00; Q[0][1] = 0.0f; Q[0][2] = 0.0f; Q[0][3] = 0.0f;
+    Q[1][0] = 0.0f; Q[1][1] = Q_11; Q[1][2] = 0.0f; Q[1][3] = 0.0f;
+    Q[2][0] = 0.0f; Q[2][1] = 0.0f; Q[2][2] = Q_22; Q[2][3] = 0.0f;
+    Q[3][0] = 0.0f; Q[3][1] = 0.0f; Q[3][2] = 0.0f; Q[3][3] = Q_33;
 
     if (R_out) *R_out = R;
 }
 
 void LQR_ComputeK() {
-    float A[4][4], B[4], Q[4][4];
-    float Rv;
-    LQR_GetMatrices(A, B, Q, &Rv);
-    float Rinv = 1.0f / Rv;
-
-    float P[4][4] = {0};
-    for (int i = 0; i < 4; i++) P[i][i] = Q[i][i];
-
-    float Pnext[4][4];
-    float At[4][4];
-    mat4_transpose(A, At);
-
-    for (int iter = 0; iter < 500; iter++) {
-        float temp1[4][4], temp2[4][4], temp3[4][4], temp4[4][4];
-
-        // A^T*P + P*A
-        mat4_mul(At, P, temp1);
-        mat4_mul(P, A, temp2);
-        mat4_add(temp1, temp2, temp3);
-
-        // P*B*(R^-1)*(B^T*P)
-        float PB[4];
-        for (int i = 0; i < 4; i++) {
-            PB[i] = 0.0f;
-            for (int j = 0; j < 4; j++) {
-                PB[i] += P[i][j] * B[j];
-            }
-        }
-
-        float BTP[4];
-        for (int j = 0; j < 4; j++) {
-            BTP[j] = 0.0f;
-            for (int i = 0; i < 4; i++) {
-                BTP[j] += B[i] * P[i][j];
-            }
-        }
-
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                temp4[i][j] = PB[i] * BTP[j] * Rinv;
-            }
-        }
-
-        // Pnext = A^T*P + P*A - P*B*R^-1*B^T*P + Q
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                Pnext[i][j] = temp3[i][j] - temp4[i][j] + Q[i][j];
-            }
-        }
-
-        // 判断收敛：无穷范数差
-        float maxDiff = 0.0f;
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
-                float d = Pnext[i][j] - P[i][j];
-                if (d < 0.0f) d = -d;
-                if (d > maxDiff) maxDiff = d;
-                P[i][j] = Pnext[i][j];
-            }
-        }
-
-        if (maxDiff < 1e-6f) break;
-    }
-
-    // K = R^-1 * B^T * P
-    for (int j = 0; j < 4; j++) {
-        float tmp = 0.0f;
-        for (int i = 0; i < 4; i++) {
-            tmp += B[i] * P[i][j];
-        }
-        K[j] = Rinv * tmp;
-    }
+    // K[0] = -0.0600f; 
+    // K[1] = -0.0600f;
+    K[0] = -0.0000f; 
+    K[1] = -0.9000f;
+    K[2] = 1.0000f;
+    K[3] = 0.04500f;
 }
 
-uint32_t uart2_speed_callback(uint8_t *buf, uint32_t len) {
-    // 例：ASCII "SPD:123.4\n" 或 "HIP:12.3,45.6\n"
-    if (len == 0 || len > 251) return 0; // 风险保护
+uint32_t LQR_process_speed(char *buf, uint32_t len) {
+    if (buf == NULL || len == 0) {
+        return 0;
+    }
 
+    if (len >= 64U) {
+        len = 63U;
+    }
     buf[len] = '\0';
-    float v = 0.0f;
-    float p = 0.0f;
-    float a = 0.0f;
-    float alpha_raw = 0.0f;
-    float beta_raw = 0.0f;
 
-    if (sscanf((char*)buf, "SPD:%f", &v) == 1) {
-        Wheel_Speed = v;
-    }
-    else if (sscanf((char*)buf, "POS:%f", &p) == 1) {
-        Wheel_position = p;
-    }
-    else if (sscanf((char*)buf, "ACC:%f", &a) == 1) {
-        Wheel_acceleration = a;
-    }
-    else {
-        float aL,bL,aR,bR;
-        // 左前左后右前右后
-        if (sscanf((char*)buf, "HIP:%f,%f,%f,%f", &aL, &bL, &aR, &bR) == 4) {
-            VMC_SetHipRawAnglesLeft((double)aL, (double)bL);
-            VMC_SetHipRawAnglesRight((double)aR, (double)bR);
+    int32_t left_v = 0;
+    int32_t right_v = 0;
+    int32_t left_p = 0;
+    int32_t right_p = 0;
+    char *start = buf;
+    while ((start = strstr(start, "SPD:")) != NULL) {
+        if (sscanf(start, "SPD:%d,%d,POS:%d,%d", &left_v, &right_v, &left_p, &right_p) == 4) {
+            left_Wheel_Speed = -left_v * 0.035f / 60.0f;
+            left_Wheel_position = left_p;
+            right_Wheel_Speed = right_v * 0.035f / 60.0f;
+            right_Wheel_position = -right_p;
+            return 1;
         }
-        else {
-            return 0; // 无效数据
-        }
+        start += 4;
     }
-
-    return 1;
+    return 0;
 }
 
-void process_uart2_fifo(void) {
-    uint32_t avail = fifo_used(puart_fifo_s[2]);
-    if (avail == 0) return;
+void uart4_callback(void) {
+    static char receive_speed_data[64]; // 定义静态缓冲区，保持跨回调数据
+    uint8_t temp_dat;
+    static int data_count = 0;
 
-    static uint8_t tmp[256];
-    uint32_t readlen = avail;
-    if (readlen > sizeof(tmp) - 1) readlen = sizeof(tmp) - 1;
-    if (fifo_read_buffer(puart_fifo_s[2], tmp, &readlen, FIFO_READ_AND_CLEAN) ==
-        FIFO_SUCCESS) {
-        uart2_speed_callback(tmp, readlen);
+    if (uart_query_byte(UART_4, &temp_dat)) {
+        if (temp_dat != '\r' && temp_dat != '\n') {
+            if (data_count < (int)(sizeof(receive_speed_data) - 1)) {
+                receive_speed_data[data_count++] = (char)temp_dat; // 存储接收到的字节
+            } else {
+                data_count = 0; // 超长数据重置
+            }
+        }
+
+        if (temp_dat == '\r' || temp_dat == '\n' || data_count >= (int)(sizeof(receive_speed_data) - 1)) {
+            if (data_count > 0) {
+                LQR_process_speed(receive_speed_data, (uint32_t)data_count);
+            }
+            data_count = 0;
+        }
     }
 }
 
-void sendTorqueToMotor(float torque)
+void sendSpeedToMotor(float left_sp,float right_sp)
 {
-    // 1. 转成协议字符串（例SPD: 扭矩）
     char buf[64];
-    int len = snprintf(buf, sizeof(buf), "CMD:TORQUE:%.2f\r\n", torque);
-    if (len <= 0 || len >= (int)sizeof(buf)) return;
-
-    // 2. 通过UART2发送
-    UartSendArray[2]((uint8_t*)buf, (uint16_t)len);
+    int left_duty = (int)(left_sp * 1750.0f); // 将速度转换为占空比百分比
+    int right_duty = (int)(right_sp * 1750.0f);
+    if (left_duty > 8000) left_duty = 8000;
+    if (left_duty < -8000) left_duty = -8000;
+    if (right_duty > 8000) right_duty = 8000;
+    if (right_duty < -8000) right_duty = -8000;
+     // 1. 格式化字符串，假设电机驱动器接受 "SET-DUTY,left_duty,right_duty" 格式的命令
+    int len = snprintf(buf, sizeof(buf), "SET-DUTY,%d,%d\r\n", left_duty, right_duty);
+    // 2. 通过UART4发送
+    UartSendArray[4]((uint8_t*)buf, (uint16_t)len);
 }
 

@@ -7,12 +7,12 @@
 extern "C" {
 #endif
 
-#define LQR_m 6.25f              // 参与俯仰的重量
-#define LQR_h 0.2156f            // 单位 m
+#define LQR_m 1.58f              // 参与俯仰的重量
+#define LQR_h 0.165f            // 单位 m
 #define LQR_I (LQR_m * LQR_h * LQR_h)  // 转动惯量
 #define LQR_g 9.8f               // 重力加速度
-#define LQR_r 0.07f              // 轮子半径 单位 m
-#define LQR_M 3.7f               // 不参与俯仰的重量 单位 kg
+#define LQR_r 0.035f              // 轮子半径 单位 m
+#define LQR_M 0.22f               // 不参与俯仰的重量 单位 kg
 #define LQR_D ((LQR_M + LQR_m) * (LQR_m * LQR_h * LQR_h + LQR_I) - LQR_m * LQR_m * LQR_h * LQR_h)
 
 // A 矩阵 (4x4)
@@ -50,15 +50,15 @@ extern "C" {
 #define R 10.0f
 
 extern float K[4]; // LQR增益矩阵
-extern float Wheel_position; // 电机位置
-extern float Wheel_Speed; // 电机速度
-extern float Wheel_acceleration; // 电机加速度
+extern float left_Wheel_position; // 左电机位置
+extern float right_Wheel_position; // 右电机位置
+extern float left_Wheel_Speed; // 左电机速度
+extern float right_Wheel_Speed; // 右电机速度
 
 // 公开接口
 void LQR_GetMatrices(float A[4][4], float B[4], float Q[4][4], float *R_out);
 void LQR_ComputeK();
-void process_uart2_fifo(void);
-void sendTorqueToMotor(float torque);
+void sendSpeedToMotor(float left_speed, float right_speed);
 #ifdef __cplusplus
 }
 #endif

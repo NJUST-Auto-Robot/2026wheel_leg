@@ -709,7 +709,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>104</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -762,8 +762,8 @@
                 </option>
                 <option>
                     <name>IlinkConfigDefines</name>
-                    <state>_CORE_cm7_0_=1</state>
-                    <state>_LINK_flash_=1</state>
+                    <state>_CORE_cm7_0_=0</state>
+                    <state>_LINK_flash_=0</state>
                 </option>
                 <option>
                     <name>IlinkMapFile</name>
@@ -1121,6 +1121,42 @@
         <name>code</name>
         <group>
             <name>Algorithm</name>
+            <group>
+                <name>Fusion</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\Fusion.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionAhrs.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionAhrs.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionAxes.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionCalibration.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionCompass.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionCompass.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionConvention.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionMath.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionOffset.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Fusion\FusionOffset.h</name>
+                </file>
+            </group>
             <group>
                 <name>Mahony</name>
                 <file>

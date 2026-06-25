@@ -109,7 +109,7 @@ void pit0_ch0_isr() {
 
 void pit0_ch1_isr() {   
   pit_isr_flag_clear(PIT_CH1); 
-  //imu_read_data(&imu660rb);     // 100Hz频率读取IMU数据
+  imu660rb.imu_data_ready = true; // 定时器中断触发，重置数据就绪标志
 }
 
 void pit0_ch2_isr() { pit_isr_flag_clear(PIT_CH2); }
@@ -260,13 +260,10 @@ void uart3_isr(void) {
 void uart4_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_4)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口4接收中断
     
-    uart4_read_byte(); // 直接在中断回调中完成 CRSF 数据处理
+    uart4_callback(); 
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4), CY_SCB_UART_RX_NOT_EMPTY);
-
-    // 串口接收机回调函数
-    // uart_receiver_handler();
   } 
   else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_4)) & CY_SCB_UART_TX_DONE){ //串口4发送中断
     // 清除接收中断标志位
@@ -277,8 +274,7 @@ void uart4_isr(void) {
 void uart5_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_5)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口5接收中断
     
-    uart5_callback(); // 读取一个字节进入 fifo
-
+    uart5_callback(); 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_5), CY_SCB_UART_RX_NOT_EMPTY);
   } 

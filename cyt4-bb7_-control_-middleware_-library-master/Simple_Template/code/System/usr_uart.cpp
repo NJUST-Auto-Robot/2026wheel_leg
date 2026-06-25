@@ -56,7 +56,7 @@ uint32_t uart_buffer_len_s[6] = {UART0_BUFSIZE, UART1_BUFSIZE, UART2_BUFSIZE,
 uart_handle_callback_t uart_handle_callback_s[6] = {
     (uart_handle_callback_t)debug_interrupt_handler,    // 串口0中断回调函数
     NULL,    // 串口1中断回调函数
-    (uart_handle_callback_t)process_uart2_fifo,    // 串口2中断回调函数
+    NULL,    // 串口2中断回调函数
     NULL,    // 串口3中断回调函数
     NULL,    // 串口4中断回调函数
     NULL      // 串口5中断回调函数
