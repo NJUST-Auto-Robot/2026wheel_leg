@@ -60,7 +60,7 @@
 // // 指定 debug uart所使用的的串口
 #define DEBUG_UART_INDEX (UART_0)
 // // 指定 debug// uart 所使用的的串口波特率
-#define DEBUG_UART_BAUDRATE (115200)
+#define DEBUG_UART_BAUDRATE (420000)
 // // 指定 debug uart 所使用的的串口引脚
 #define DEBUG_UART_TX_PIN (UART0_TX_P00_1)
 // // 指定 debug uart 所使用的的串口引脚

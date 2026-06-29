@@ -31,7 +31,7 @@ void imu_init(imu_state_t *state)
     state->angles.pitch_acc = 0.0f;// 初始化俯仰角
     state->angles.yaw_acc = 0.0f;  // 初始化偏航角
 
-    pit_us_init(PIT_CH1, 19200); //设置定时器中断为19.2ms，对应52Hz的采样率
+    pit_us_init(PIT_CH1, 4800); //设置定时器中断为4.8ms，对应208Hz的采样率
     imu660rb_init();   // 初始化IMU660RB
 
     FusionAhrsInitialise(&ahrs);
@@ -82,10 +82,12 @@ void imu_read_data(imu_state_t *state)
         FusionVector gyroscope = {state->raw_data.gyro[x], state->raw_data.gyro[y], state->raw_data.gyro[z]};
         gyroscope = FusionCalibrationInertial(gyroscope, gyroscopeMisalignment, gyroscopeSensitivity, gyroscopeOffset);
         gyroscope = FusionOffsetUpdate(&offset, gyroscope);
-        FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, 1.0/52.0f);
+        FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, 1.0/208.0f);
         euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
-        
-        state->angles.roll = euler.angle.roll;
+        if(euler.angle.roll < 0)
+            state->angles.roll = -(180 - fabs(euler.angle.roll));
+        else if(euler.angle.roll >= 0)
+            state->angles.roll = 180 - fabs(euler.angle.roll);
         state->angles.pitch = euler.angle.pitch;
         state->angles.yaw = euler.angle.yaw;
 
@@ -94,6 +96,9 @@ void imu_read_data(imu_state_t *state)
             state->angles.roll_acc = (state->angles.roll - state->angles.last_roll) / state->dt;
             state->angles.pitch_acc = (state->angles.pitch - state->angles.last_pitch) / state->dt;
             state->angles.yaw_acc = (state->angles.yaw - state->angles.last_yaw) / state->dt;
+            // state->angles.roll_acc = state->raw_data.gyro[y];
+            // state->angles.pitch_acc = state->raw_data.gyro[x];
+            // state->angles.yaw_acc = state->raw_data.gyro[z];
             state->angles.last_roll = state->angles.roll;
             state->angles.last_pitch = state->angles.pitch;
             state->angles.last_yaw = state->angles.yaw;
@@ -103,7 +108,7 @@ void imu_read_data(imu_state_t *state)
 
 void imu_data_check(imu_state_t *state)
 {   
-    if(    fabs(state->angles.last_pitch - state->angles.pitch)  < 0.2f
+    if(fabs(state->angles.last_pitch - state->angles.pitch)  < 0.2f
         && fabs(state->angles.last_roll  - state->angles.roll)   < 0.2f
         && fabs(state->angles.last_yaw   - state->angles.yaw)    < 0.2f) {
         // 如果当前欧拉角与上次欧拉角的差值都小于0.5度，认为数据稳定
@@ -141,10 +146,10 @@ void imu_cordinate_convert(imu_state_t *state)
 
 void imu_tx_data(imu_state_t *state)
 {
-     printf("\r\nimu660rb acc data:  x=%d, y=%d, z=%d\r\n", 
-             (int)(state->angles.roll_acc*100),  (int)(state->angles.pitch_acc*100),  (int)(state->angles.yaw_acc*100));
+    // printf("\r\nimu660rb acc data:  x=%d, y=%d, z=%d\r\n", 
+    //          (int)(state->angles.roll_acc*100),  (int)(state->angles.pitch_acc*100),  (int)(state->angles.yaw_acc*100));
     // printf("\r\nimu660rb gyro data: x=%f, y=%f, z=%f\r\n", 
     //         state->raw_data.gyro[x], state->raw_data.gyro[y], state->raw_data.gyro[z]);
-    //printf("\r\nimu660rb angle data:  roll=%d°, pitch=%d°, yaw=%d°\r\n", 
-            //(int)state->angles.roll, (int)state->angles.pitch, (int)state->angles.yaw);
+    // printf("\r\nimu660rb angle data:  roll=%d°, pitch=%d°, yaw=%d°\r\n", 
+    //         (int)state->angles.roll, (int)state->angles.pitch, (int)state->angles.yaw);
 }
