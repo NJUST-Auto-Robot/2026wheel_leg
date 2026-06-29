@@ -53,7 +53,6 @@
 #include "zf_driver_delay.h"
 #include "zf_driver_soft_spi.h"
 #include "zf_driver_spi.h"
-#include "Module/UBX/ubx_decoder.h"
 
 #if OLED_USE_SOFT_SPI
 static soft_spi_info_struct oled_spi;

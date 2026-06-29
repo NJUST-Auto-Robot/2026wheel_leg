@@ -7,11 +7,11 @@
 extern "C" {
 #endif
 
-// ºê¶¨Òå
-#define IMU_FUSION_SAMPLE_RATE 52.0f           // ²ÉÑùÆµÂÊ (Hz)
-#define IMU_FUSION_COMPLEMENTARY_ALPHA 0.98f   // »¥²¹ÂË²¨alphaÖµ
-#define IMU_FUSION_GYRO_SCALE 500.0f           // ÍÓÂÝÒÇÁ¿³Ì (¡ã/s)
-#define IMU_FUSION_ACC_SCALE 2.0f              // ¼ÓËÙ¶È¼ÆÁ¿³Ì (g)
+// ï¿½ê¶¨ï¿½ï¿½
+#define IMU_FUSION_SAMPLE_RATE 208.0f           // ï¿½ï¿½ï¿½ï¿½Æµï¿½ï¿½ (Hz)
+#define IMU_FUSION_COMPLEMENTARY_ALPHA 0.98f   // ï¿½ï¿½ï¿½ï¿½ï¿½Ë²ï¿½alphaÖµ
+#define IMU_FUSION_GYRO_SCALE 500.0f           // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½/s)
+#define IMU_FUSION_ACC_SCALE 2.0f              // ï¿½ï¿½ï¿½Ù¶È¼ï¿½ï¿½ï¿½ï¿½ï¿½ (g)
 
 typedef enum {
     x = 0,
@@ -19,16 +19,16 @@ typedef enum {
     z = 2
 } Axis_t;
 
-// ½á¹¹Ìå¶¨Òå
+// ï¿½á¹¹ï¿½å¶¨ï¿½ï¿½
 typedef struct {
-    float acc[3];   // ¼ÓËÙ¶È¼ÆÊý¾Ý (g) x,y,z
-    float gyro[3];  // ÍÓÂÝÒÇÊý¾Ý (¡ã/s) x,y,z
+    float acc[3];   // ï¿½ï¿½ï¿½Ù¶È¼ï¿½ï¿½ï¿½ï¿½ï¿½ (g) x,y,z
+    float gyro[3];  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½/s) x,y,z
 } imu_data_t;
 
 typedef struct {
-    float roll;   // ºá¹ö½Ç (¡ã)
-    float pitch;  // ¸©Ñö½Ç (¡ã)
-    float yaw;    // Æ«º½½Ç (¡ã)
+    float roll;   // ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½)
+    float pitch;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½)
+    float yaw;    // Æ«ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½)
     float roll_acc;  
     float pitch_acc;  
     float yaw_acc;   
@@ -38,16 +38,16 @@ typedef struct {
 } euler_angles_t;
 
 typedef struct {
-    imu_data_t raw_data;        // µ±Ç°IMUÊý¾Ý
-    euler_angles_t angles;      // µ±Ç°Å·À­½Ç
-    float dt;                   // Ê±¼ä¼ä¸ô
-    bool  imu_data_ready;       // Êý¾Ý¾ÍÐ÷±êÖ¾
-    int   imu_data_true;        // ³õÊ¼»¯×´Ì¬
+    imu_data_t raw_data;        // ï¿½ï¿½Ç°IMUï¿½ï¿½ï¿½ï¿½
+    euler_angles_t angles;      // ï¿½ï¿½Ç°Å·ï¿½ï¿½ï¿½ï¿½
+    float dt;                   // Ê±ï¿½ï¿½ï¿½ï¿½
+    bool  imu_data_ready;       // ï¿½ï¿½ï¿½Ý¾ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾
+    int   imu_data_true;        // ï¿½ï¿½Ê¼ï¿½ï¿½×´Ì¬
 } imu_state_t;
 
-extern imu_state_t imu660rb; // È«¾ÖÈÚºÏ×´Ì¬ÊµÀý
+extern imu_state_t imu660rb; // È«ï¿½ï¿½ï¿½Úºï¿½×´Ì¬Êµï¿½ï¿½
 
-// º¯ÊýÉùÃ÷
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 void imu_init(imu_state_t *state);
 void imu_read_data(imu_state_t *state);
 void imu_tx_data(imu_state_t *state);

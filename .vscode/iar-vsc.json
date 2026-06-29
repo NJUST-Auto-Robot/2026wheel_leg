@@ -10,11 +10,11 @@
         "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\project_config\\cyt4bb7_cm_7_1.ewp": "Debug"
       },
       "selected": {
-        "path": "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\project_config\\cyt4bb7_cm_0_plus.ewp"
+        "path": "${workspaceFolder}\\cyt4-bb7_-control_-middleware_-library-master\\Simple_Template\\iar\\project_config\\cyt4bb7_cm_7_0.ewp"
       }
     }
   },
   "workbench": {
-    "path": "D:\\IAR"
+    "path": "d:\\Work Apps\\IAR\\IAR"
   }
 }
