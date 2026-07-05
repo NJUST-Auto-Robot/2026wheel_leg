@@ -1170,6 +1170,12 @@
         <group>
             <name>Controller</name>
             <file>
+                <name>$PROJ_DIR$\..\..\code\Controller\BodyEKF.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\Controller\BodyEKF.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\..\code\Controller\CRC8.c</name>
             </file>
             <file>

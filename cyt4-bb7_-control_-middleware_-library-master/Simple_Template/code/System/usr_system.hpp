@@ -44,6 +44,8 @@ extern "C" {
 // 用户系统初始化函数
 void usrSystemInit(void);
 
+extern volatile bool bodyekf_update_ready;
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

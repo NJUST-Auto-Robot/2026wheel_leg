@@ -31,11 +31,11 @@ void imu_init(imu_state_t *state)
     state->angles.pitch_acc = 0.0f;// 初始化俯仰角
     state->angles.yaw_acc = 0.0f;  // 初始化偏航角
 
-    pit_us_init(PIT_CH1, 19200); //设置定时器中断为19.2ms，对应52Hz的采样率
+    pit_us_init(PIT_CH1, 2402); //
     imu660rb_init();   // 初始化IMU660RB
 
     FusionAhrsInitialise(&ahrs);
-    FusionOffsetInitialise(&offset, 52); // 以52Hz的采样率初始化FusionOffset
+    FusionOffsetInitialise(&offset, 416); // 以52Hz的采样率初始化FusionOffset
     offset_cnt = OFFSET_CAL_TIME;
     
     while(offset_cnt)
@@ -82,22 +82,15 @@ void imu_read_data(imu_state_t *state)
         FusionVector gyroscope = {state->raw_data.gyro[x], state->raw_data.gyro[y], state->raw_data.gyro[z]};
         gyroscope = FusionCalibrationInertial(gyroscope, gyroscopeMisalignment, gyroscopeSensitivity, gyroscopeOffset);
         gyroscope = FusionOffsetUpdate(&offset, gyroscope);
-        FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, 1.0/52.0f);
+        FusionAhrsUpdateNoMagnetometer(&ahrs, gyroscope, accelerometer, 1.0/60.0f);
         euler = FusionQuaternionToEuler(FusionAhrsGetQuaternion(&ahrs));
         
         state->angles.roll = euler.angle.roll;
         state->angles.pitch = euler.angle.pitch;
         state->angles.yaw = euler.angle.yaw;
-
-        if(state->imu_data_true < 0)
-        {
-            state->angles.roll_acc = (state->angles.roll - state->angles.last_roll) / state->dt;
-            state->angles.pitch_acc = (state->angles.pitch - state->angles.last_pitch) / state->dt;
-            state->angles.yaw_acc = (state->angles.yaw - state->angles.last_yaw) / state->dt;
-            state->angles.last_roll = state->angles.roll;
-            state->angles.last_pitch = state->angles.pitch;
-            state->angles.last_yaw = state->angles.yaw;
-        }
+        state->angles.roll_acc = state->raw_data.gyro[y];
+        state->angles.pitch_acc = state->raw_data.gyro[x];
+        state->angles.yaw_acc = state->raw_data.gyro[z];
         
 }
 
@@ -108,21 +101,21 @@ void imu_data_check(imu_state_t *state)
 
 void imu_cordinate_convert(imu_state_t *state)
 {   
-    static bool  convert_flag = false;      // 坐标系转换标志
-    static float roll_ref  = 0.0f;          // 横滚角参考值
-    static float pitch_ref = 0.0f;          // 俯仰角参考值
-    static float yaw_ref   = 0.0f;          // 偏航角参考值      
-    if(convert_flag == false ) {
-        roll_ref  = state->angles.roll;
-        pitch_ref = state->angles.pitch;
-        yaw_ref   = state->angles.yaw;
-        convert_flag = true; // 设置坐标系转换标志，后续不再更新参考值
-    }
-    if(convert_flag == true) {
-        state->angles.roll  =  state->angles.roll  - roll_ref;   // 坐标系转换后的横滚角
-        state->angles.pitch =  state->angles.pitch - pitch_ref;  // 坐标系转换后的俯仰角
-        state->angles.yaw   =  state->angles.yaw   - yaw_ref;    // 坐标系转换后的偏航角
-    }
+    // static bool  convert_flag = false;      // 坐标系转换标志
+    // static float roll_ref  = 0.0f;          // 横滚角参考值
+    // static float pitch_ref = 0.0f;          // 俯仰角参考值
+    // static float yaw_ref   = 0.0f;          // 偏航角参考值      
+    // if(convert_flag == false ) {
+    //     // roll_ref  = state->angles.roll;
+    //     // pitch_ref = state->angles.pitch;
+    //     // yaw_ref   = state->angles.yaw;
+    //     convert_flag = true; // 设置坐标系转换标志，后续不再更新参考值
+    // }
+    // if(convert_flag == true) {
+    //     state->angles.roll  =  state->angles.roll  - roll_ref;   // 坐标系转换后的横滚角
+    //     state->angles.pitch =  state->angles.pitch - pitch_ref;  // 坐标系转换后的俯仰角
+    //     state->angles.yaw   =  state->angles.yaw   - yaw_ref;    // 坐标系转换后的偏航角
+    // }
 }
 
 void imu_tx_data(imu_state_t *state)

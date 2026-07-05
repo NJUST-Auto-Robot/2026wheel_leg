@@ -106,15 +106,18 @@ void LQR_GetMatrices(float A[4][4], float B[4], float Q[4][4], float *R_out) {
 }
 
 void LQR_ComputeK() {
-    // K[0] = -0.0600f; 
-    // K[1] = -0.0600f;
-    K[0] = -0.0000f; 
-    K[1] = -0.9000f;
-    K[2] = 1.0000f;
-    K[3] = 0.04500f;
+    K[0] = -0.000f; 
+    // K[1] = 1.5085f;
+    //K[0] = -1.500f;
+    K[1] = 1.90430f;
+    K[2] = 8.3446f;
+    K[3] = 1.5400f;
 }
 
 uint32_t LQR_process_speed(char *buf, uint32_t len) {
+    static bool first_run = true;
+    float init_position_left = 0.0f; // 初始左轮位置
+    float init_position_right = 0.0f; // 初始右轮位置
     if (buf == NULL || len == 0) {
         return 0;
     }
@@ -123,7 +126,6 @@ uint32_t LQR_process_speed(char *buf, uint32_t len) {
         len = 63U;
     }
     buf[len] = '\0';
-
     int32_t left_v = 0;
     int32_t right_v = 0;
     int32_t left_p = 0;
@@ -131,10 +133,15 @@ uint32_t LQR_process_speed(char *buf, uint32_t len) {
     char *start = buf;
     while ((start = strstr(start, "SPD:")) != NULL) {
         if (sscanf(start, "SPD:%d,%d,POS:%d,%d", &left_v, &right_v, &left_p, &right_p) == 4) {
-            left_Wheel_Speed = -left_v * 0.035f / 60.0f;
-            left_Wheel_position = left_p;
-            right_Wheel_Speed = right_v * 0.035f / 60.0f;
-            right_Wheel_position = -right_p;
+            left_Wheel_Speed = left_v*0.035f*2*3.1415f/60.0f; // 转速转换为线速度，单位 m/s
+            left_Wheel_position = left_p*19.2f*0.035f*2*3.1415f/360-init_position_left;
+            right_Wheel_Speed = -right_v*0.035f*2*3.1415f/60.0f;
+            right_Wheel_position = -right_p*19.2f*0.035f*2*3.1415f/360-init_position_right;
+            if (first_run) {
+                init_position_left = left_Wheel_position;
+                init_position_right = right_Wheel_position;
+                first_run = false;
+            }
             return 1;
         }
         start += 4;
@@ -168,8 +175,8 @@ void uart4_callback(void) {
 void sendSpeedToMotor(float left_sp,float right_sp)
 {
     char buf[64];
-    int left_duty = (int)(left_sp * 1750.0f); // 将速度转换为占空比百分比
-    int right_duty = (int)(right_sp * 1750.0f);
+    int left_duty = (int)(left_sp * 1040.0f); // 将速度转换为占空比百分比
+    int right_duty = (int)(right_sp * 1040.0f);
     if (left_duty > 8000) left_duty = 8000;
     if (left_duty < -8000) left_duty = -8000;
     if (right_duty > 8000) right_duty = 8000;

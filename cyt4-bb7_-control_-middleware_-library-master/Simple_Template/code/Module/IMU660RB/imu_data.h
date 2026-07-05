@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 // 宏定义
-#define IMU_FUSION_SAMPLE_RATE 52.0f           // 采样频率 (Hz)
+#define IMU_FUSION_SAMPLE_RATE 832.0f           // 采样频率 (Hz)
 #define IMU_FUSION_COMPLEMENTARY_ALPHA 0.98f   // 互补滤波alpha值
 #define IMU_FUSION_GYRO_SCALE 500.0f           // 陀螺仪量程 (°/s)
 #define IMU_FUSION_ACC_SCALE 2.0f              // 加速度计量程 (g)
