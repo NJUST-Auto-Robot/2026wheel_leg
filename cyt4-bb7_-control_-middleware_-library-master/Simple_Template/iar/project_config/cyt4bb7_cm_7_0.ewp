@@ -378,7 +378,6 @@
                     <state>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1</state>
                     <state>$PROJ_DIR$\..\..\FreeRTOS\Source\CMSIS_RTOS_V2</state>
                     <state>$PROJ_DIR$\..\..\code\System</state>
-                    <state>D:\Projects\GitHub repository\2026wheel_leg-Karrigan\2026wheel_leg-Karrigan\cyt4-bb7_-control_-middleware_-library-master\Simple_Template\code\Controller</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1170,6 +1169,12 @@
         </group>
         <group>
             <name>Controller</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\Controller\BodyEKF.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\Controller\BodyEKF.h</name>
+            </file>
             <file>
                 <name>$PROJ_DIR$\..\..\code\Controller\CRC8.c</name>
             </file>

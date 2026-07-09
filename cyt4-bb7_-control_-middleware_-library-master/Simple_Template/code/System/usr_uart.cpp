@@ -22,7 +22,7 @@
 #include "System/usr_uart.hpp"
 #include "zf_common_headfile.h"
 #include "zf_driver_uart.h"
-#include "Controller\CRSF.h"
+#include "Controller/CRSF.h"
 
 /**
  * @brief 测试用的中断回调函数，用于应答

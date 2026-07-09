@@ -151,7 +151,7 @@ typedef struct crsfPayloadLinkstatistics_s
 extern CRSF_CH_Struct CRSF_CH;
 void Crsf_Data_procees(void);
 void Crsf_Data_Read(uint8_t *data, uint8_t len);
-extern void uart4_callback(void);
+extern void CRSF_callback(void);
 #ifdef __cplusplus
 }
 #endif

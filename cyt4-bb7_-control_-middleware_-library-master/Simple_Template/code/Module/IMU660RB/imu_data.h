@@ -7,11 +7,11 @@
 extern "C" {
 #endif
 
-// �궨��
-#define IMU_FUSION_SAMPLE_RATE 208.0f           // ����Ƶ�� (Hz)
-#define IMU_FUSION_COMPLEMENTARY_ALPHA 0.98f   // �����˲�alphaֵ
-#define IMU_FUSION_GYRO_SCALE 500.0f           // ���������� (��/s)
-#define IMU_FUSION_ACC_SCALE 2.0f              // ���ٶȼ����� (g)
+// ????
+#define IMU_FUSION_SAMPLE_RATE 833.0f           // ??????? (Hz)
+#define IMU_FUSION_COMPLEMENTARY_ALPHA 0.98f   // ???????alpha?
+#define IMU_FUSION_GYRO_SCALE 500.0f           // ?????????? (??/s)
+#define IMU_FUSION_ACC_SCALE 2.0f              // ?????????? (g)
 
 typedef enum {
     x = 0,
@@ -19,16 +19,16 @@ typedef enum {
     z = 2
 } Axis_t;
 
-// �ṹ�嶨��
+// ???�G??
 typedef struct {
-    float acc[3];   // ���ٶȼ����� (g) x,y,z
-    float gyro[3];  // ���������� (��/s) x,y,z
+    float acc[3];   // ?????????? (g) x,y,z
+    float gyro[3];  // ?????????? (??/s) x,y,z
 } imu_data_t;
 
 typedef struct {
-    float roll;   // ����� (��)
-    float pitch;  // ������ (��)
-    float yaw;    // ƫ���� (��)
+    float roll;   // ????? (??)
+    float pitch;  // ?????? (??)
+    float yaw;    // ????? (??)
     float roll_acc;  
     float pitch_acc;  
     float yaw_acc;   
@@ -38,16 +38,17 @@ typedef struct {
 } euler_angles_t;
 
 typedef struct {
-    imu_data_t raw_data;        // ��ǰIMU����
-    euler_angles_t angles;      // ��ǰŷ����
-    float dt;                   // ʱ����
-    bool  imu_data_ready;       // ���ݾ�����־
-    int   imu_data_true;        // ��ʼ��״̬
+    imu_data_t raw_data;        // ???IMU????
+    euler_angles_t angles;      // ????????
+    float dt;                   // ?????
+    bool  imu_data_ready;       // ??????????
+    int   imu_data_true;        // ???????
+    bool  imu_init_finish;
 } imu_state_t;
 
-extern imu_state_t imu660rb; // ȫ���ں�״̬ʵ��
+extern imu_state_t imu660rb; // ???????????
 
-// ��������
+// ????????
 void imu_init(imu_state_t *state);
 void imu_read_data(imu_state_t *state);
 void imu_tx_data(imu_state_t *state);

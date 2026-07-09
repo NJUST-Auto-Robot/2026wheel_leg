@@ -3,7 +3,7 @@
 
 #include "zf_common_typedef.h"
 #include "usr_uart.hpp"
-#include "Controller\LQR.h"
+#include "LQR.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
