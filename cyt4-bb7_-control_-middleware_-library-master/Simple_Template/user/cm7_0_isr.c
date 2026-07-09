@@ -47,6 +47,7 @@
 
 #include "zf_common_headfile.h"
 #include "System/usr_uart.hpp"
+#include "usr_system.hpp"
 #include "Module/IMU660RB/imu_data.h"
 
 /**
@@ -98,12 +99,20 @@ static void handleWhenIdle(uint8_t uart_id) {
 // **************************** PIT定时中断函数 ****************************
 void pit0_ch0_isr() {
   pit_isr_flag_clear(PIT_CH0);
-
+  static int f = 0;
+  f++;
+  if(f>200)
+  {
+    gpio_toggle_level(P19_0);
+    debug_print_f = true;
+    f = 0;
+  }
   handleWhenIdle(0); // debug串口空闲时，进行回调处理 
   handleWhenIdle(1); // 串口1空闲时，进行回调处理 
   handleWhenIdle(2); // 串口2空闲时，进行回调处理 
   handleWhenIdle(3); // 串口3空闲时，进行回调处理 
   handleWhenIdle(4); // 串口4空闲时，进行回调处理 
+  handleWhenIdle(5); // 串口5空闲时，进行回调处理
 }
 
 void pit0_ch1_isr() {   
@@ -259,17 +268,27 @@ void uart3_isr(void) {
 void uart4_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_4)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口4接收中断
     
-    uart4_read_byte(); // 读取一个字节进入 fifo
+    uart4_callback(); 
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4), CY_SCB_UART_RX_NOT_EMPTY);
-
-    // 串口接收机回调函数
-    // uart_receiver_handler();
   } 
   else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_4)) & CY_SCB_UART_TX_DONE){ //串口4发送中断
     // 清除接收中断标志位
     Cy_SCB_ClearTxInterrupt(get_scb_module(UART_4), CY_SCB_UART_TX_DONE);
+  }
+}
+
+void uart5_isr(void) {
+  if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_5)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口5接收中断
+    
+    CRSF_callback(); 
+    // 清除接收中断标志位
+    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_5), CY_SCB_UART_RX_NOT_EMPTY);
+  } 
+  else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_5)) & CY_SCB_UART_TX_DONE){ //串口5发送中断
+    // 清除发送中断标志位
+    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_5), CY_SCB_UART_TX_DONE);
   }
 }
 // **************************** 串口中断函数 ****************************

@@ -56,11 +56,13 @@ typedef enum // 枚举串口发送引脚 此枚举定义不允许用户修改
 
   UART1_TX_P04_1, // 串口1 发送引脚
 
-  UART2_TX_P10_1, // 串口2 发送引脚可选范围
+  UART2_TX_P06_1, // 串口2 发送引脚可选范围
 
   UART3_TX_P17_2, // 串口3 发送引脚可选范围
 
   UART4_TX_P14_1, // 串口4 发送引脚可选范围
+
+  UART5_TX_P03_1, // 串口5 发送引脚可选范围
 } uart_tx_pin_enum;
 
 typedef enum // 枚举串口接收引脚 此枚举定义不允许用户修改
@@ -70,11 +72,13 @@ typedef enum // 枚举串口接收引脚 此枚举定义不允许用户修改
 
   UART1_RX_P04_0, // 串口1 接收引脚
 
-  UART2_RX_P10_0, // 串口2 接收引脚可选范围
+  UART2_RX_P06_0, // 串口2 接收引脚可选范围
 
   UART3_RX_P17_1, // 串口3 接收引脚可选范围
 
   UART4_RX_P14_0, // 串口4 接收引脚可选范围
+
+  UART5_RX_P03_0, // 串口5 接收引脚可选范围
 } uart_rx_pin_enum;
 
 typedef enum // 枚举串口号 此枚举定义不允许用户修改
@@ -83,6 +87,7 @@ typedef enum // 枚举串口号 此枚举定义不允许用户修改
   UART_2,
   UART_3,
   UART_4,
+  UART_5,
 } uart_index_enum;
 
 volatile stc_SCB_t *get_scb_module(uart_index_enum uart_n);

@@ -22,6 +22,7 @@
 #include "System/usr_uart.hpp"
 #include "zf_common_headfile.h"
 #include "zf_driver_uart.h"
+#include "Controller/CRSF.h"
 
 /**
  * @brief 测试用的中断回调函数，用于应答
@@ -36,28 +37,29 @@ uint32_t uart_callback(uint8_t *buf, uint32_t len) {
 }
 
 // 串口的fifo
-fifo_struct uart1_fifo, uart2_fifo, uart3_fifo, uart4_fifo;
+fifo_struct uart1_fifo, uart2_fifo, uart3_fifo, uart4_fifo,uart5_fifo;
 // 串口fifo集合
-fifo_struct *puart_fifo_s[5] = {&debug_uart_fifo, &uart1_fifo, &uart2_fifo,
-                                &uart3_fifo, &uart4_fifo};
+fifo_struct *puart_fifo_s[6] = {&debug_uart_fifo, &uart1_fifo, &uart2_fifo,
+                                &uart3_fifo, &uart4_fifo, &uart5_fifo};
 // 串口fifo的buffer
 uint8_t uart0_buffer[UART0_BUFSIZE], uart1_buffer[UART1_BUFSIZE],
         uart2_buffer[UART2_BUFSIZE], uart3_buffer[UART3_BUFSIZE],
-        uart4_buffer[UART4_BUFSIZE];
+        uart4_buffer[UART4_BUFSIZE], uart5_buffer[UART5_BUFSIZE];
 // 串口fifo的buffer集合
-uint8_t *uart_buffer_s[5] = {uart0_buffer, uart1_buffer, uart2_buffer,
-                             uart3_buffer, uart4_buffer};
+uint8_t *uart_buffer_s[6] = {uart0_buffer, uart1_buffer, uart2_buffer,
+                             uart3_buffer, uart4_buffer, uart5_buffer};
 // 串口fifo的buffer的长度集合
-uint32_t uart_buffer_len_s[5] = {UART0_BUFSIZE, UART1_BUFSIZE, UART2_BUFSIZE,
-                                 UART3_BUFSIZE, UART4_BUFSIZE};
+uint32_t uart_buffer_len_s[6] = {UART0_BUFSIZE, UART1_BUFSIZE, UART2_BUFSIZE,
+                                 UART3_BUFSIZE, UART4_BUFSIZE, UART5_BUFSIZE};
  
 // 串口中断回调函数集合
-uart_handle_callback_t uart_handle_callback_s[5] = {
+uart_handle_callback_t uart_handle_callback_s[6] = {
     (uart_handle_callback_t)debug_interrupt_handler,    // 串口0中断回调函数
     NULL,    // 串口1中断回调函数
     NULL,    // 串口2中断回调函数
     NULL,    // 串口3中断回调函数
-    NULL     // 串口4中断回调函数
+    NULL,    // 串口4中断回调函数
+    NULL      // 串口5中断回调函数
 };
 
 template <uint8_t uart_id> bool uartSend(uint8_t *pData, uint16_t Size) {
@@ -71,9 +73,10 @@ Send_DMA_Fun_t uart1_Send = uartSend<1>;
 Send_DMA_Fun_t uart2_Send = uartSend<2>;
 Send_DMA_Fun_t uart3_Send = uartSend<3>;
 Send_DMA_Fun_t uart4_Send = uartSend<4>;
+Send_DMA_Fun_t uart5_Send = uartSend<5>;
 // 发送函数的合集
-Send_DMA_Fun_t UartSendArray[5] = {uart0_Send, uart1_Send, uart2_Send,
-                                  uart3_Send, uart4_Send};
+Send_DMA_Fun_t UartSendArray[6] = {uart0_Send, uart1_Send, uart2_Send,
+                                  uart3_Send, uart4_Send, uart5_Send};
 
 /**
  * @brief 初始化单个串口，注册fifo，并打开接收中断
@@ -122,17 +125,11 @@ void uartSingleInit(uint8_t uart_id, uint32_t baudrate, bool is_sbus,
  *
  */
 void usrUartInit(void) {
-  // 串口1：8 N 1
-  uartSingleInit(1, 115200, false, 8, CY_SCB_UART_PARITY_NONE,
+  uartSingleInit(UART_4, 115200, false, 8, CY_SCB_UART_PARITY_NONE,
                  CY_SCB_UART_STOP_BITS_1);
-  // 串口2：8 N 1
-  uartSingleInit(1, 115200, false, 8, CY_SCB_UART_PARITY_EVEN,
-                 CY_SCB_UART_STOP_BITS_2);
-  // 串口3：8 N 1
-  uartSingleInit(3, 115200, false, 8, CY_SCB_UART_PARITY_NONE,
+  uartSingleInit(UART_5, 115200, false, 8, CY_SCB_UART_PARITY_NONE,
                  CY_SCB_UART_STOP_BITS_1);
-  // 串口4：8 N 1
-  uartSingleInit(4, 115200, false, 8, CY_SCB_UART_PARITY_NONE,
+  uartSingleInit(UART_2, 420000, false, 8, CY_SCB_UART_PARITY_NONE,
                  CY_SCB_UART_STOP_BITS_1);
 }
 
@@ -144,14 +141,9 @@ void usrUartInit(void) {
 template <uint8_t uart_id> void uart_read_byte(void) {
   uint8_t rec_sta = 0;
   if (puart_fifo_s[uart_id]->init_state == true) {
-    /* 以下有3种方式读取串口数据 */
-    // 1. 一次读取
-    // uart_query_byte(DEBUG_UART_INDEX, &debug_uart_data);
-    // 2. 有数据才读取
-    // debug_uart_data = uart_read_byte(DEBUG_UART_INDEX);
-    // 3. 有数据才读取，超时会退出
     uint8_t get_byte;
-    rec_sta = uart_read_self_quit((uart_index_enum)uart_id, &get_byte, 1000);
+    // 在中断上下文中使用非阻塞查询以避免阻塞/进入 non-root 中断
+    rec_sta = uart_query_byte((uart_index_enum)uart_id, &get_byte);
     if (rec_sta) {
       // 如果接收成功
       fifo_write_buffer(puart_fifo_s[uart_id], &get_byte, 1); // 存入 FIFO
@@ -165,3 +157,4 @@ void (*uart1_read_byte)(void) = uart_read_byte<1>;
 void (*uart2_read_byte)(void) = uart_read_byte<2>;
 void (*uart3_read_byte)(void) = uart_read_byte<3>;
 void (*uart4_read_byte)(void) = uart_read_byte<4>;
+void (*uart5_read_byte)(void) = uart_read_byte<5>;  
