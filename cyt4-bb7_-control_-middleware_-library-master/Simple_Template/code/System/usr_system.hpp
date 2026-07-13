@@ -41,6 +41,10 @@ enum LinkageStatus_Typedef {
 extern "C" {
 #endif // __cplusplus
 
+extern float pid_linear_speed_l; 
+extern float pid_linear_speed_r; 
+
+
 // 用户系统初始化函数
 void usrSystemInit(void);
 extern bool debug_print_f;

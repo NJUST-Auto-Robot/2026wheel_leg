@@ -1158,12 +1158,12 @@
                 </file>
             </group>
             <group>
-                <name>Mahony</name>
+                <name>PID</name>
                 <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\Mahony\mahony.c</name>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\PID\Pid.c</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\Mahony\mahony.h</name>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\PID\Pid.h</name>
                 </file>
             </group>
         </group>

@@ -27,7 +27,7 @@
 #include "zf_common_headfile.h"
 #include <math.h>
 // 任务所需包含头文件
-#include "algorithm/mahony/mahony.h"
+#include "algorithm/PID/Pid.h"
 #include "Module/IMU660RB/imu_data.h"
 #include "Controller/LQR.h"
 #include "Controller/Motor.h"
@@ -51,6 +51,15 @@ USR_SYSTEM usr_sys;
 float target_linear_speed_l = 0.0f; 
 float target_linear_speed_r = 0.0f; 
 float target_linear_speed = 0.0f; 
+float pid_linear_speed_l = 0.0f; 
+float pid_linear_speed_r = 0.0f; 
+
+//pid类 
+pid_t pid_speedl;
+pid_t pid_speedr;
+pid_t pid_theta_line;                               //角度环走线
+pid_t pid_theta_turn;                               //角度环转弯
+pid_t pid_distance;                                 //位置环
 
 // 用于存储估算的车身高度 (单位 m)
 static float current_height = 0.0f; 
@@ -221,7 +230,7 @@ void USR_SYSTEM::peripheralInit(void) {
   LQR_ComputeK();                            
 
   // 速度 PID（线速度闭环）参数（宏定义）
-  MotorPID_Init(MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, MOTOR_PID_I_TERM_MAX, MOTOR_PID_OUT_MAX);
+  PID_Init_All();
 
   Crc8_init(0xD5);
 }   
@@ -276,7 +285,6 @@ void IMU660RBTask(void *argument) {
   while(1)
   {  
 
-     static int i = 0;
      if(imu660rb.imu_data_ready)//约19.2ms读取一次IMU数据
      {  
           imu_read_data(&imu660rb);
@@ -287,12 +295,6 @@ void IMU660RBTask(void *argument) {
           }  
           if(imu660rb.imu_data_true == -1) {
             //imu_cordinate_convert(&imu660rb); // 坐标系转换
-            i++;
-            if(i>=100)
-            {
-               //imu_tx_data(&imu660rb);
-               i=0;
-            }
           }
           } 
         imu660rb.imu_data_ready = false;    // 读取数据后，重置数据就绪标志
@@ -309,8 +311,8 @@ void ControlTask(void *argument) {
   while(1)
   { 
     // 在这里可以添加平衡控制的代码，例如使用LQR算法计算控制输入，并通过PWM输出控制电机
-    float x_l_ref[] = {0.0f, -target_linear_speed_l, 3.65f*3.1715f/180.0f, 0.0f}; // 目标状态向量
-    float x_r_ref[] = {0.0f, -target_linear_speed_r, 3.65f*3.1715f/180.0f, 0.0f}; // 目标状态向量
+    float x_l_ref[] = {0.0f, -pid_linear_speed_l, 3.65f*3.1715f/180.0f, 0.0f}; // 目标状态向量
+    float x_r_ref[] = {0.0f, -pid_linear_speed_r, 3.65f*3.1715f/180.0f, 0.0f}; // 目标状态向量
     float left_x_current[] = {left_Wheel_position, right_Wheel_Speed, imu660rb.angles.pitch*3.1415f/180.0f, imu660rb.angles.pitch_acc*3.1415f/180.0f}; // 当前状态向量
     float right_x_current[] = {right_Wheel_position, left_Wheel_Speed, imu660rb.angles.pitch*3.1415f/180.0f, imu660rb.angles.pitch_acc*3.1415f/180.0f}; // 当前状态向量
     float left_x_error[4];
@@ -323,6 +325,7 @@ void ControlTask(void *argument) {
     left_vref  =  K[0] * left_x_error[0]  - K[1] * left_x_error[1]  - K[2] * left_x_error[2]  - K[3] * left_x_error[3]; // 计算平衡扭矩
     right_vref =  K[0] * right_x_error[0] - K[1] * right_x_error[1] - K[2] * right_x_error[2] - K[3] * right_x_error[3];; // 计算右轮速度参考值
     control_ready= true; // 控制准备就绪
+    
     vTaskDelay(1);
   }
   /* USER CODE END 5 */
@@ -436,7 +439,6 @@ void CRSFTask(void *argument) {
    
   while(1)
   { 
-    //Crsf_Data_procees(); // 处理接收数据
     float kl = 0;
     float kr = 0;
     if (CRSF_CH.ConnectState == SBUS_SIGNAL_OK)
@@ -475,15 +477,8 @@ void CRSFTask(void *argument) {
       target_linear_speed = 0.0f;
     }
 
-    // // 通过串口5发送目标线速度
-    // {
-    //   char speed_buf[32];
-    //   int speed_len = snprintf(speed_buf, sizeof(speed_buf), "target_linear_speed=%.2f\r\n", target_linear_speed);
-    //   if (speed_len > 0 && speed_len < (int)sizeof(speed_buf)) {
-    //     //UartSendArray[4]((uint8_t*)speed_buf, (uint16_t)speed_len);
-    //   }
-    // }
-
+    pid_linear_speed_l = target_linear_speed_l + pid_calc_angle(&pid_theta_line, imu660rb.angles.yaw, imu660rb.angles.zero_yaw);
+    pid_linear_speed_r = target_linear_speed_r - pid_calc_angle(&pid_theta_line, imu660rb.angles.yaw, imu660rb.angles.zero_yaw);
     vTaskDelay(1);
   }
   /* USER CODE END 5 */
