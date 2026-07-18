@@ -208,10 +208,10 @@ float imu660rb_acc_transition (int16 acc_value)
     float acc_data = 0;
     switch(IMU660RB_ACC_SAMPLE)
     {
-        case 0x30: acc_data = (float)acc_value / 16393; break;                  // 0x30 加速度量程为:±2G      获取到的加速度计数据 除以 16393 ，可以转化为带物理单位的数据，单位：g(m/s^2)
-        case 0x38: acc_data = (float)acc_value / 8197;  break;                  // 0x38 加速度量程为:±4G      获取到的加速度计数据 除以 8197 ， 可以转化为带物理单位的数据，单位：g(m/s^2)
-        case 0x3C: acc_data = (float)acc_value / 4098;  break;                  // 0x3C 加速度量程为:±8G      获取到的加速度计数据 除以 4098 ， 可以转化为带物理单位的数据，单位：g(m/s^2)
-        case 0x34: acc_data = (float)acc_value / 2049;  break;                  // 0x34 加速度量程为:±16G     获取到的加速度计数据 除以 2049 ， 可以转化为带物理单位的数据，单位：g(m/s^2)
+        case 0x70: acc_data = (float)acc_value / 16393; break;                  // 0x30 加速度量程为:±2G      获取到的加速度计数据 除以 16393 ，可以转化为带物理单位的数据，单位：g(m/s^2)
+        case 0x78: acc_data = (float)acc_value / 8197;  break;                  // 0x38 加速度量程为:±4G      获取到的加速度计数据 除以 8197 ， 可以转化为带物理单位的数据，单位：g(m/s^2)
+        case 0x7C: acc_data = (float)acc_value / 4098;  break;                  // 0x3C 加速度量程为:±8G      获取到的加速度计数据 除以 4098 ， 可以转化为带物理单位的数据，单位：g(m/s^2)
+        case 0x74: acc_data = (float)acc_value / 2049;  break;                  // 0x34 加速度量程为:±16G     获取到的加速度计数据 除以 2049 ， 可以转化为带物理单位的数据，单位：g(m/s^2)
         default: break;
     }
     return acc_data;
@@ -229,12 +229,12 @@ float imu660rb_gyro_transition (int16 gyro_value)
     float gyro_data = 0;
     switch(IMU660RB_GYR_SAMPLE)
     {
-        case 0x52: gyro_data = (float)gyro_value / 228.6f;  break;              //  0x52 陀螺仪量程为:±125dps  获取到的陀螺仪数据除以 228.6，   可以转化为带物理单位的数据，单位为：°/s
-        case 0x50: gyro_data = (float)gyro_value / 114.3f;  break;              //  0x50 陀螺仪量程为:±250dps  获取到的陀螺仪数据除以 114.3，   可以转化为带物理单位的数据，单位为：°/s
-        case 0x54: gyro_data = (float)gyro_value / 57.1f;   break;              //  0x54 陀螺仪量程为:±500dps  获取到的陀螺仪数据除以 57.1，    可以转化为带物理单位的数据，单位为：°/s
-        case 0x58: gyro_data = (float)gyro_value / 28.6f;   break;              //  0x58 陀螺仪量程为:±1000dps 获取到的陀螺仪数据除以 28.6，    可以转化为带物理单位的数据，单位为：°/s
-        case 0x5C: gyro_data = (float)gyro_value / 14.3f;   break;              //  0x5C 陀螺仪量程为:±2000dps 获取到的陀螺仪数据除以 14.3，    可以转化为带物理单位的数据，单位为：°/s
-        case 0x51: gyro_data = (float)gyro_value / 7.1f;    break;              //  0x51 陀螺仪量程为:±4000dps 获取到的陀螺仪数据除以 7.1，     可以转化为带物理单位的数据，单位为：°/s
+        case 0x72: gyro_data = (float)gyro_value / 228.6f;  break;              //  0x52 陀螺仪量程为:±125dps  获取到的陀螺仪数据除以 228.6，   可以转化为带物理单位的数据，单位为：°/s
+        case 0x70: gyro_data = (float)gyro_value / 114.3f;  break;              //  0x50 陀螺仪量程为:±250dps  获取到的陀螺仪数据除以 114.3，   可以转化为带物理单位的数据，单位为：°/s
+        case 0x74: gyro_data = (float)gyro_value / 57.1f;   break;              //  0x54 陀螺仪量程为:±500dps  获取到的陀螺仪数据除以 57.1，    可以转化为带物理单位的数据，单位为：°/s
+        case 0x78: gyro_data = (float)gyro_value / 28.6f;   break;              //  0x58 陀螺仪量程为:±1000dps 获取到的陀螺仪数据除以 28.6，    可以转化为带物理单位的数据，单位为：°/s
+        case 0x7C: gyro_data = (float)gyro_value / 14.3f;   break;              //  0x5C 陀螺仪量程为:±2000dps 获取到的陀螺仪数据除以 14.3，    可以转化为带物理单位的数据，单位为：°/s
+        case 0x71: gyro_data = (float)gyro_value / 7.1f;    break;              //  0x51 陀螺仪量程为:±4000dps 获取到的陀螺仪数据除以 7.1，     可以转化为带物理单位的数据，单位为：°/s
         default: break;
     }
     return gyro_data;
@@ -279,14 +279,14 @@ uint8 imu660rb_init (void)
         // 设置为:0x3C 加速度量程为:±8G      获取到的加速度计数据 除以4098， 可以转化为带物理单位的数据，单位：g(m/s^2)
         // 设置为:0x34 加速度量程为:±16G     获取到的加速度计数据 除以2049， 可以转化为带物理单位的数据，单位：g(m/s^2)
 
-        imu660rb_write_register(IMU660RB_CTRL2_G, IMU660RB_GYR_SAMPLE);         // 设置陀螺仪计量程 ±250dps 以及数据输出速率 208hz
+        imu660rb_write_register(IMU660RB_CTRL2_G, IMU660RB_GYR_SAMPLE);         // 设置陀螺仪计量程 ±500dps 以及数据输出速率 52hz
         // IMU660RB_CTRL2_G 寄存器
-        // 设置为:0x52 陀螺仪量程为:±125dps  获取到的陀螺仪数据除以228.6，   可以转化为带物理单位的数据，单位为：°/s
-        // 设置为:0x50 陀螺仪量程为:±250dps  获取到的陀螺仪数据除以114.3，   可以转化为带物理单位的数据，单位为：°/s
-        // 设置为:0x54 陀螺仪量程为:±500dps  获取到的陀螺仪数据除以57.1，    可以转化为带物理单位的数据，单位为：°/s
-        // 设置为:0x58 陀螺仪量程为:±1000dps 获取到的陀螺仪数据除以28.6，    可以转化为带物理单位的数据，单位为：°/s
-        // 设置为:0x5C 陀螺仪量程为:±2000dps 获取到的陀螺仪数据除以14.3，    可以转化为带物理单位的数据，单位为：°/s
-        // 设置为:0x51 陀螺仪量程为:±4000dps 获取到的陀螺仪数据除以7.1，     可以转化为带物理单位的数据，单位为：°/s
+        // 设置为:0x32 陀螺仪量程为:±125dps  获取到的陀螺仪数据除以228.6，   可以转化为带物理单位的数据，单位为：°/s
+        // 设置为:0x30 陀螺仪量程为:±250dps  获取到的陀螺仪数据除以114.3，   可以转化为带物理单位的数据，单位为：°/s
+        // 设置为:0x34 陀螺仪量程为:±500dps  获取到的陀螺仪数据除以57.1，    可以转化为带物理单位的数据，单位为：°/s
+        // 设置为:0x38 陀螺仪量程为:±1000dps 获取到的陀螺仪数据除以28.6，    可以转化为带物理单位的数据，单位为：°/s
+        // 设置为:0x3C 陀螺仪量程为:±2000dps 获取到的陀螺仪数据除以14.3，    可以转化为带物理单位的数据，单位为：°/s
+        // 设置为:0x31 陀螺仪量程为:±4000dps 获取到的陀螺仪数据除以7.1，     可以转化为带物理单位的数据，单位为：°/s
 
         imu660rb_write_register(IMU660RB_CTRL3_C, 0x44);                        // 使能陀螺仪数字低通滤波器
         imu660rb_write_register(IMU660RB_CTRL4_C, 0x02);                        // 使能数字低通滤波器

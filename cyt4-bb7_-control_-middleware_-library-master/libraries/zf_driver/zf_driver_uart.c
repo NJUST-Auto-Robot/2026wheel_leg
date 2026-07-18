@@ -61,6 +61,7 @@ void uart1_isr(void);
 void uart2_isr(void);
 void uart3_isr(void);
 void uart4_isr(void);
+void uart5_isr(void);
 
 typedef struct {
   volatile stc_GPIO_PRT_t *rx_port;
@@ -73,10 +74,10 @@ typedef struct {
   cy_en_intr_t uart_irqn;
 } uart_config_struct;
 
-void (*uart_isr_func[5])() = {uart0_isr, uart1_isr, uart2_isr, uart3_isr,
-                              uart4_isr};
-cy_stc_scb_uart_context_t uart_context[5] = {0};
-volatile stc_SCB_t *scb_module[5] = {SCB0, SCB5, SCB4, SCB3, SCB2};
+void (*uart_isr_func[6])() = {uart0_isr, uart1_isr, uart2_isr, uart3_isr,
+                              uart4_isr, uart5_isr};
+cy_stc_scb_uart_context_t uart_context[6] = {0};
+volatile stc_SCB_t *scb_module[6] = {SCB0, SCB5, SCB4, SCB3, SCB2, SCB6};
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介       获取串口配置信息
 // 参数说明       uart_n          串口模块号 参照 zf_driver_uart.h 内
@@ -103,10 +104,10 @@ static void get_uart_config(uart_config_struct *config_struct,
     config_struct->uart_pclk = PCLK_SCB5_CLOCK;
     config_struct->uart_irqn = scb_5_interrupt_IRQn;
   } break;
-  case UART2_TX_P10_1: {
-    config_struct->tx_port = GPIO_PRT10;
+  case UART2_TX_P06_1: {
+    config_struct->tx_port = GPIO_PRT6;
     config_struct->tx_pin = 1;
-    config_struct->tx_hsiom = P10_1_SCB4_UART_TX;
+    config_struct->tx_hsiom = P6_1_SCB4_UART_TX;
     config_struct->uart_pclk = PCLK_SCB4_CLOCK;
     config_struct->uart_irqn = scb_4_interrupt_IRQn;
   } break;
@@ -123,6 +124,13 @@ static void get_uart_config(uart_config_struct *config_struct,
     config_struct->tx_hsiom = P14_1_SCB2_UART_TX;
     config_struct->uart_pclk = PCLK_SCB2_CLOCK;
     config_struct->uart_irqn = scb_2_interrupt_IRQn;
+  } break;
+  case UART5_TX_P03_1: {
+    config_struct->tx_port = GPIO_PRT3;
+    config_struct->tx_pin = 1;
+    config_struct->tx_hsiom = P3_1_SCB6_UART_TX;
+    config_struct->uart_pclk = PCLK_SCB6_CLOCK;
+    config_struct->uart_irqn = scb_6_interrupt_IRQn;
   } break;
   default:
     zf_assert(0);
@@ -143,10 +151,10 @@ static void get_uart_config(uart_config_struct *config_struct,
     config_struct->uart_pclk = PCLK_SCB5_CLOCK;
     config_struct->uart_irqn = scb_5_interrupt_IRQn;
   } break;
-  case UART2_RX_P10_0: {
-    config_struct->rx_port = GPIO_PRT10;
+  case UART2_RX_P06_0: {
+    config_struct->rx_port = GPIO_PRT6;
     config_struct->rx_pin = 0;
-    config_struct->rx_hsiom = P10_0_SCB4_UART_RX;
+    config_struct->rx_hsiom = P6_0_SCB4_UART_RX;
     config_struct->uart_pclk = PCLK_SCB4_CLOCK;
     config_struct->uart_irqn = scb_4_interrupt_IRQn;
   } break;
@@ -164,9 +172,54 @@ static void get_uart_config(uart_config_struct *config_struct,
     config_struct->uart_pclk = PCLK_SCB2_CLOCK;
     config_struct->uart_irqn = scb_2_interrupt_IRQn;
   } break;
+  case UART5_RX_P03_0: {
+    config_struct->rx_port = GPIO_PRT3;
+    config_struct->rx_pin = 0;
+    config_struct->rx_hsiom = P3_0_SCB6_UART_RX;
+    config_struct->uart_pclk = PCLK_SCB6_CLOCK;
+    config_struct->uart_irqn = scb_6_interrupt_IRQn;
+  } break;
   default:
     zf_assert(0);
     break;
+  }
+}
+
+static bool uart_tx_pin_valid(uart_index_enum uart_n, uart_tx_pin_enum tx_pin) {
+  switch (tx_pin) {
+  case UART0_TX_P00_1:
+    return uart_n == UART_0;
+  case UART1_TX_P04_1:
+    return uart_n == UART_1;
+  case UART2_TX_P06_1:
+    return uart_n == UART_2;
+  case UART3_TX_P17_2:
+    return uart_n == UART_3;
+  case UART4_TX_P14_1:
+    return uart_n == UART_4;
+  case UART5_TX_P03_1:
+    return uart_n == UART_5;
+  default:
+    return false;
+  }
+}
+
+static bool uart_rx_pin_valid(uart_index_enum uart_n, uart_rx_pin_enum rx_pin) {
+  switch (rx_pin) {
+  case UART0_RX_P00_0:
+    return uart_n == UART_0;
+  case UART1_RX_P04_0:
+    return uart_n == UART_1;
+  case UART2_RX_P06_0:
+    return uart_n == UART_2;
+  case UART3_RX_P17_1:
+    return uart_n == UART_3;
+  case UART4_RX_P14_0:
+    return uart_n == UART_4;
+  case UART5_RX_P03_0:
+    return uart_n == UART_5;
+  default:
+    return false;
   }
 }
 
@@ -193,6 +246,9 @@ volatile stc_SCB_t *get_scb_module(uart_index_enum uart_n) {
     break;
   case UART_4:
     temp_module = SCB2;
+    break;
+  case UART_5:
+    temp_module = SCB6;
     break;
   default:
     zf_assert(0);
@@ -394,7 +450,7 @@ void uart_rx_interrupt(uart_index_enum uart_n, uint32 status) {
 
 //-------------------------------------------------------------------------------------------------------------------
 //  函数简介      SBUS串口初始化
-//  参数说明      uartn           SBUS串口模块号(UART_0,UART_1,UART_2,UART_3)
+//  参数说明      uartn           SBUS串口模块号(UART_0,UART_1,UART_2,UART_3,UART_4,UART_5)
 //  参数说明      baud            SBUS串口波特率
 //  参数说明      tx_pin          SBUS串口发送引脚
 //  参数说明      rx_pin          SBUS串口接收引脚
@@ -409,8 +465,8 @@ void uart_sbus_init(uart_index_enum uart_n, uint32 baud,
                     uint8_t stop_bit_num) {
   // 醒醒，串口号和端口都不对应怎么能初始化呢？
 
-  zf_assert((uint8)uart_n == (uint8)tx_pin ? 1 : 0);
-  zf_assert((uint8)uart_n == (uint8)rx_pin ? 1 : 0);
+  zf_assert(uart_tx_pin_valid(uart_n, tx_pin));
+  zf_assert(uart_rx_pin_valid(uart_n, rx_pin));
 
   uart_config_struct uart_pin_config = {0};
   cy_stc_gpio_pin_config_t gpio_pin_config = {0};
@@ -427,7 +483,7 @@ void uart_sbus_init(uart_index_enum uart_n, uint32 baud,
                    &gpio_pin_config);
 
   gpio_pin_config.driveMode = CY_GPIO_DM_STRONG_IN_OFF;
-  gpio_pin_config.hsiom = uart_pin_config.rx_hsiom;
+  gpio_pin_config.hsiom = uart_pin_config.tx_hsiom;
   Cy_GPIO_Pin_Init(uart_pin_config.tx_port, uart_pin_config.tx_pin,
                    &gpio_pin_config);
 
@@ -470,7 +526,7 @@ void uart_sbus_init(uart_index_enum uart_n, uint32 baud,
 
 //-------------------------------------------------------------------------------------------------------------------
 //  函数简介      串口初始化
-//  参数说明      uartn           串口模块号(UART_0,UART_1,UART_2,UART_3)
+//  参数说明      uartn           串口模块号(UART_0,UART_1,UART_2,UART_3,UART_4,UART_5)
 //  参数说明      baud            串口波特率
 //  参数说明      tx_pin          串口发送引脚
 //  参数说明      rx_pin          串口接收引脚
@@ -483,8 +539,8 @@ void uart_init(uart_index_enum uart_n, uint32 baud, uart_tx_pin_enum tx_pin,
                uint8_t verification_type, uint8_t stop_bit_num) {
   // 醒醒，串口号和端口都不对应怎么能初始化呢？
 
-  zf_assert((uint8)uart_n == (uint8)tx_pin ? 1 : 0);
-  zf_assert((uint8)uart_n == (uint8)rx_pin ? 1 : 0);
+  zf_assert(uart_tx_pin_valid(uart_n, tx_pin));
+  zf_assert(uart_rx_pin_valid(uart_n, rx_pin));
 
   uart_config_struct uart_pin_config = {0};
   cy_stc_gpio_pin_config_t gpio_pin_config = {0};
@@ -501,7 +557,7 @@ void uart_init(uart_index_enum uart_n, uint32 baud, uart_tx_pin_enum tx_pin,
                    &gpio_pin_config);
 
   gpio_pin_config.driveMode = CY_GPIO_DM_STRONG_IN_OFF;
-  gpio_pin_config.hsiom = uart_pin_config.rx_hsiom;
+  gpio_pin_config.hsiom = uart_pin_config.tx_hsiom;
   Cy_GPIO_Pin_Init(uart_pin_config.tx_port, uart_pin_config.tx_pin,
                    &gpio_pin_config);
 

@@ -48,39 +48,20 @@
 
 #include "cmsis_os.h"
 #include "zf_common_headfile.h"
-
+#include "system_cyt4bb.h"
 // 打开新的工程或者工程移动了位置务必执行以下操作
 // 第一步 关闭上面所有打开的文件
 // 第二步 project->clean  等待下方进度条走完
 
-xTaskHandle StartDefaultTaskHandle;
-void StartDefaultTask(void *argument);
-
-xTaskHandle MPU6050TaskHandle;
-void MPU6050Task(void *argument);
-
-// 本例程是开源库空工程
-// 本例程是开源库空工程
-// 本例程是开源库空工程
 volatile uint16_t debug_cnt = 0;
 int main(void) {
   __enable_irq();
   SystemInit(); // 系统初始化 对系统时钟、系统电源进行配置
-  //  debug_init(); // 初始化默认调试串口
   Cy_SysEnableApplCore(CORE_CM7_0, CY_CORTEX_M7_0_APPL_ADDR); // 启动M7核心0
   Cy_SysEnableApplCore(CORE_CM7_1, CY_CORTEX_M7_1_APPL_ADDR); // 启动M7核心1
 
-  // 此处编写用户初始化代码
-   // 创建默认任务
-   xTaskCreate(StartDefaultTask, "StartDefaultTask", 256, NULL,
-   osPriorityNormal, &StartDefaultTaskHandle);
-   // 开启任务调度
-   vTaskStartScheduler();
-  // 此处编写用户初始化代码
   while (true) {
-    // 此处编写需要循环执行的代码
 
-    //        system_delay_ms(500);
     debug_cnt = (debug_cnt + 1) % 5;
 
     // 此处编写需要循环执行的代码
@@ -88,20 +69,4 @@ int main(void) {
 }
 
 // **************************** 代码区域 ****************************
-void StartDefaultTask(void *argument) {
-  /* USER CODE BEGIN 5 */
-  TickType_t xLastWakeTime;
-  const TickType_t xFrequency = 10;
-  xLastWakeTime = xTaskGetTickCount();
 
-  /* 客制化准备 */
-  gpio_init(P19_0, GPO, GPIO_LOW,
-            GPO_PUSH_PULL); // 初始化 LED1 输出 默认高电平 推挽输出模式
-  /* Infinite loop */
-  for (;;) {
-        gpio_toggle_level(P19_0);
-        vTaskDelay(125);
-    //vTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
-  /* USER CODE END 5 */
-}

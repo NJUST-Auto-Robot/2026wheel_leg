@@ -355,28 +355,25 @@
                 </option>
                 <option>
                     <name>CCIncludePath2</name>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\common\hdr</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\common\hdr\cmsis\include</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\common\src\drivers</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\common\src\mw</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\hdr</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\hdr\ip</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\hdr\mcureg</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\src</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\src\interrupts</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\src\mw</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\src\drivers</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\src\system</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\sdk\common\hdr\cmsis\dsp</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\zf_common</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\zf_driver</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\zf_device</state>
-                    <state>$PROJ_DIR$\..\..\..\libraries\zf_components</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\common\hdr</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\common\hdr\cmsis\include</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\common\src\drivers</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\common\src\mw</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\hdr</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\hdr\ip</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\hdr\mcureg</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\src</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\src\interrupts</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\src\mw</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\src\drivers</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\src\system</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\sdk\common\hdr\cmsis\dsp</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\zf_common</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\zf_driver</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\zf_device</state>
+                    <state>$PROJ_DIR$\..\..\..\libraries1\zf_components</state>
                     <state>$PROJ_DIR$\..\..\user</state>
                     <state>$PROJ_DIR$\..\..\code</state>
-                    <state>$PROJ_DIR$\..\..\FreeRTOS\Source\CMSIS_RTOS_V2</state>
-                    <state>$PROJ_DIR$\..\..\FreeRTOS\Source\include</state>
-                    <state>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1119,34 +1116,19 @@
     <group>
         <name>code</name>
         <group>
-            <name>Algorithm</name>
-            <group>
-                <name>DSP</name>
-            </group>
-            <group>
-                <name>Filters</name>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\Filters\filters.cpp</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\Filters\filters.hpp</name>
-                </file>
-            </group>
-            <group>
-                <name>PID</name>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\PID\pid.cpp</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\PID\pid.hpp</name>
-                </file>
-            </group>
-        </group>
-        <group>
-            <name>Module</name>
-            <group>
-                <name>SoundProcess</name>
-            </group>
+            <name>MachineVision</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.h</name>
+            </file>
         </group>
         <group>
             <name>System</name>
@@ -1156,30 +1138,6 @@
             <file>
                 <name>$PROJ_DIR$\..\..\user\main_cm7_1.c</name>
             </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\System\usr_system_M71.cpp</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\System\usr_uart.cpp</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\System\usr_uart.hpp</name>
-            </file>
-        </group>
-        <group>
-            <name>Utility</name>
-            <group>
-                <name>UpperMonitor</name>
-            </group>
-            <group>
-                <name>VOFAplus</name>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Utility\VOFAplus\VOFAplus.hpp</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Utility\VOFAplus\VOFAplus_M71.cpp</name>
-                </file>
-            </group>
         </group>
     </group>
     <group>
@@ -1190,51 +1148,6 @@
         <file>
             <name>$PROJ_DIR$\..\..\..\libraries\doc\version.txt</name>
         </file>
-    </group>
-    <group>
-        <name>FreeRTOS</name>
-        <group>
-            <name>Core</name>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os2.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\croutine.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\event_groups.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\list.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\queue.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\stream_buffer.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\tasks.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\timers.c</name>
-            </file>
-        </group>
-        <group>
-            <name>Portable</name>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\MemMang\heap_4.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1\port.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1\portasm.s</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1\portmacro.h</name>
-            </file>
-        </group>
     </group>
     <group>
         <name>sdk</name>
@@ -1955,277 +1868,280 @@
         <group>
             <name>zf_common</name>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_clock.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_clock.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_clock.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_clock.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_debug.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_debug.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_debug.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_debug.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_fifo.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_fifo.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_fifo.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_fifo.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_font.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_font.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_font.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_font.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_function.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_function.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_function.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_function.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_headfile.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_headfile.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_interrupt.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_interrupt.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_interrupt.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_interrupt.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_common\zf_common_typedef.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_common\zf_common_typedef.h</name>
             </file>
         </group>
         <group>
             <name>zf_components</name>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_components\seekfree_assistant.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_components\seekfree_assistant.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_components\seekfree_assistant.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_components\seekfree_assistant.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_components\seekfree_assistant_interface.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_components\seekfree_assistant_interface.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_components\seekfree_assistant_interface.h</name>
             </file>
         </group>
         <group>
             <name>zf_device</name>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_absolute_encoder.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_ble6a20.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_absolute_encoder.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_ble6a20.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_bluetooth_ch9141.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_config.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_bluetooth_ch9141.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_dl1a.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_config.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_dl1a.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_dl1a.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_dl1b.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_dl1a.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_dl1b.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_dl1b.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_gnss.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_dl1b.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_gnss.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_gnss.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_icm20602.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_gnss.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_icm20602.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_icm20602.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu660ra.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_icm20602.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu660ra.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_imu660ra.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu660rb.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_imu660ra.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu660rb.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_imu963ra.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu660rc.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_imu963ra.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu660rc.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_ips114.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu963ra.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_ips114.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_imu963ra.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_ips200.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_key.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_ips200.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_key.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_key.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_menc15a.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_key.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_menc15a.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_mpu6050.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_mt9v03x.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_mpu6050.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_mt9v03x.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_oled.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_oled.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_oled.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_oled.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_tft180.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_pmw3901.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_tft180.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_pmw3901.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_tsl1401.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_tsl1401.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_tsl1401.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_tsl1401.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_type.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_type.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_type.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_type.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_virtual_oscilloscope.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_uart_receiver.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_virtual_oscilloscope.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_uart_receiver.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_wifi_spi.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_wifi_spi.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_wifi_spi.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_wifi_spi.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_wifi_uart.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_wifi_uart.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_wifi_uart.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_wifi_uart.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_wireless_uart.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_wireless_uart.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_wireless_uart.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_wireless_uart.h</name>
             </file>
         </group>
         <group>
             <name>zf_driver</name>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_adc.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_adc.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_adc.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_adc.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_delay.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_delay.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_delay.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_delay.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_dma.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_dma.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_dma.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_dma.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_encoder.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_encoder.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_encoder.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_encoder.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_exti.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_exti.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_exti.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_exti.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_flash.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_flash.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_flash.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_flash.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_gpio.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_gpio.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_gpio.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_gpio.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_ipc.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_ipc.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_ipc.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_ipc.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_pit.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_pit.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_pit.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_pit.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_pwm.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_pwm.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_pwm.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_pwm.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_soft_iic.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_soft_iic.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_soft_iic.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_soft_iic.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_soft_spi.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_soft_spi.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_soft_spi.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_soft_spi.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_spi.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_spi.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_spi.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_spi.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_timer.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_timer.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_timer.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_timer.h</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_uart.c</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_uart.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\..\..\libraries\zf_driver\zf_driver_uart.h</name>
+                <name>$PROJ_DIR$\..\..\..\libraries1\zf_driver\zf_driver_uart.h</name>
             </file>
         </group>
     </group>
