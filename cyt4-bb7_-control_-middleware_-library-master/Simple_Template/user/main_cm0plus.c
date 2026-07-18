@@ -62,6 +62,8 @@ int main(void) {
 
   while (true) {
 
+    debug_cnt = (debug_cnt + 1) % 5;
+
     // 此处编写需要循环执行的代码
   }
 }

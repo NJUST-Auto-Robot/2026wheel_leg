@@ -43,12 +43,12 @@
 // **************************** 代码区域 ****************************
 
 int main(void) {
-  clock_init(SYSTEM_CLOCK_250M);    // 时钟配置及系统初始化<务必保留>
-  debug_info_init();                // 调试串口信息初始化
+  clock_init(SYSTEM_CLOCK_250M);  // 时钟配置及系统初始化<务必保留>
+  debug_init();                   // 调试串口信息初始化
 
-  //usrSystemInit();                // 用户系统初始化 包括外设和任务创建
-  //osKernelInitialize();           // 初始化FreeRTOS内核
-  //osKernelStart();                // 开启FreeRTOS内核调度
+  usrSystemInit();                // 用户系统初始化 包括外设和任务创建
+  osKernelInitialize();           // 初始化FreeRTOS内核
+  osKernelStart();                // 开启FreeRTOS内核调度
   while (true) {
     /*假如FreeRTOS调度成功，那么不会运行这里面的代码*/
   }

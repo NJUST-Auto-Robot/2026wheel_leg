@@ -129,7 +129,7 @@ void pit0_ch20_isr()                    // 定时器通道 20 周期中断服务
 void pit0_ch21_isr()                    // 定时器通道 21 周期中断服务函数      
 {
     pit_isr_flag_clear(PIT_CH21);
-    tsl1401_collect_pit_handler();
+    //tsl1401_collect_pit_handler();
 }
 // **************************** PIT中断函数 ****************************
 
@@ -173,7 +173,10 @@ void uart1_isr (void)
 void uart2_isr (void)
 {
     if(uart_isr_mask(UART_2))            // 串口2接收中断
-    {       
+    {
+        
+        //gnss_uart_callback();            // GPS模块回调函数      
+        
     }
     else                                // 串口2发送中断
     {

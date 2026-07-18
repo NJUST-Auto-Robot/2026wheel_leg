@@ -133,9 +133,10 @@ uint8 y1_boundary[MT9V03X_W], y2_boundary[MT9V03X_W], y3_boundary[MT9V03X_W];
 uint8 image_copy[MT9V03X_H][MT9V03X_W];
 
 int main(void)
-{
+{       
     clock_init(SYSTEM_CLOCK_250M); 	// 时钟配置及系统初始化<务必保留>
-    debug_init();                       // 调试串口信息初始化
+    debug_init(); 
+    //while(1);// 调试串口信息初始化
     // 此处编写用户代码 例如外设初始化代码等
     
 #if(1 == INCLUDE_BOUNDARY_TYPE || 2 == INCLUDE_BOUNDARY_TYPE || 4 == INCLUDE_BOUNDARY_TYPE)
