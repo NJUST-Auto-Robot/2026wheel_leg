@@ -705,7 +705,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>16</hasPrio>
+                <hasPrio>1</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -1115,6 +1115,21 @@
     </configuration>
     <group>
         <name>code</name>
+        <group>
+            <name>MachineVision</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.h</name>
+            </file>
+        </group>
         <group>
             <name>System</name>
             <file>

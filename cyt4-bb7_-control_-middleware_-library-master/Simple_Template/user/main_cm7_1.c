@@ -34,6 +34,8 @@
 ********************************************************************************************************************/
 
 #include "zf_common_headfile.h"
+#include "MachineVision/auto_get_best_threshold.h"
+#include "MachineVision/find_block.h"
 // 打开新的工程或者工程移动了位置务必执行以下操作
 // 第一步 关闭上面所有打开的文件
 // 第二步 project->clean  等待下方进度条走完
@@ -106,9 +108,9 @@
 #define INCLUDE_BOUNDARY_TYPE   0
 
 
-#define WIFI_SSID_TEST          "qianhua"
-#define WIFI_PASSWORD_TEST      "c66xp2js"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
-#define TCP_TARGET_IP           "10.104.254.94"             // 连接目标的 IP
+#define WIFI_SSID_TEST          "AutoRobot_201"
+#define WIFI_PASSWORD_TEST      "AuTo201#"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
+#define TCP_TARGET_IP           "192.168.1.216"             // 连接目标的 IP
 #define TCP_TARGET_PORT         "8086"                      // 连接目标的端口
 #define WIFI_LOCAL_PORT         "6666"                      // 本机的端口 0：随机  可设置范围2048-65535  默认 6666
 
@@ -131,6 +133,11 @@ uint8 y1_boundary[MT9V03X_W], y2_boundary[MT9V03X_W], y3_boundary[MT9V03X_W];
 
 // 图像备份数组，在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
 uint8 image_copy[MT9V03X_H][MT9V03X_W];
+//视觉处理部分定义
+uint8_t best_threshold = 0;
+uint8_t last_threshold = 0;
+uint8_t is_threshold_stable = 0;
+uint8_t the_flag_of_camera_init = 1;
 
 int main(void)
 {       
@@ -285,7 +292,32 @@ int main(void)
 
             // 在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
             memcpy(image_copy[0], mt9v03x_image[0], MT9V03X_IMAGE_SIZE);
-
+            //GARY_TO_BINARY((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 66);
+            /*
+             if(is_threshold_stable < 20)
+            {
+              best_threshold = dajinfa((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H);
+              if(best_threshold < 5 || best_threshold > 250)
+              {
+                continue;
+              }
+              if(abs(last_threshold - best_threshold) < 3)
+                is_threshold_stable += 1;
+              else
+                is_threshold_stable = 0;
+              
+              last_threshold = best_threshold;
+            }
+            else
+            {
+              GARY_TO_BINARY_Pro((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 100, 140);
+              seekfree_assistant_camera_send();
+            }
+            */
+            //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &try_block);
+            Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 240, 190, 80, 60, 40, 40);
+            Draw_Max_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+            Draw_Merge_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
             // 发送图像
             seekfree_assistant_camera_send();
             // 如果使用UDP协议传输数据则推荐在数据全部发送到模块之后立即调用wifi_spi_udp_send_now()函数，以告知模块立即将收到的数据发送到网络上
