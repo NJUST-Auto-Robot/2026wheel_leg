@@ -512,7 +512,16 @@ void ComunicateTask(void *argument) {
       sendSpeedToMotor(left_vref, right_vref);
       control_ready = false;
     }
+<<<<<<< Updated upstream
 
+=======
+    //if(debug_print_f == true)
+    //{
+    //  printf(" l=%d, r=%d\r\n", 
+    //        (int)(target_linear_speed_l*100), (int)(target_linear_speed_r*100));
+    //  debug_print_f = false;
+    //}
+>>>>>>> Stashed changes
     
     vTaskDelay(1);
   }

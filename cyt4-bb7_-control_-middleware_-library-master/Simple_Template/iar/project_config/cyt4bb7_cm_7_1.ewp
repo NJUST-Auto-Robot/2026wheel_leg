@@ -705,7 +705,11 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
+<<<<<<< Updated upstream
                 <hasPrio>56</hasPrio>
+=======
+                <hasPrio>1</hasPrio>
+>>>>>>> Stashed changes
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -1728,10 +1732,17 @@
                 <group>
                     <name>rev_b</name>
                     <file>
+<<<<<<< Updated upstream
                         <name>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\src\interrupts\cy_interrupt_map.c</name>
                     </file>
                     <file>
                         <name>$PROJ_DIR$\..\..\..\libraries\sdk\tviibh4m\src\interrupts\cy_interrupt_map_cm7_0.h</name>
+=======
+                        <name>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\src\interrupts\cy_interrupt_map.c</name>
+                    </file>
+                    <file>
+                        <name>$PROJ_DIR$\..\..\..\libraries1\sdk\tviibh4m\src\interrupts\cy_interrupt_map_cm7_0.h</name>
+>>>>>>> Stashed changes
                     </file>
                 </group>
             </group>
