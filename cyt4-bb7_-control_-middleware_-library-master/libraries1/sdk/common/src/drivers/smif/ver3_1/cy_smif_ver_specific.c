@@ -15,7 +15,7 @@
 * the software package with which this file was provided.
 *******************************************************************************/
 
-#include "smif/ver2/cy_smif_ver_specific.h"
+#include "smif/ver3_1/cy_smif_ver_specific.h"
 
 #ifdef CY_IP_MXSMIF
 
@@ -114,13 +114,14 @@ cy_en_smif_status_t Cy_SMIF_Init(volatile cy_stc_smif_reg_t *base,
         tempCtl.stcField.u1DELAY_TAP_ENABLED    = 1u;
         tempCtl.stcField.u3DELAY_LINE_SEL       = config->delaySel;
     }
-    //rmkn: not supported tempCtl.stcField.u1INT_CLOCK_DL_ENABLED     = (uint8_t)config->dlpAuto;
+    tempCtl.stcField.u1INT_CLOCK_DL_ENABLED     = (uint8_t)config->dlpAuto;
     tempCtl.stcField.u1XIP_MODE                 = config->mode;
-    //rmkn: not supported tempCtl.stcField.u2INT_CLOCK_CAPTURE_CYCLE  = config->capDelay;
+    tempCtl.stcField.u2INT_CLOCK_CAPTURE_CYCLE  = config->capDelay;
     tempCtl.stcField.u3DESELECT_DELAY           = config->deselectDelay;
     tempCtl.stcField.u2SELECT_SETUP_DELAY       = config->setupDelay;
     tempCtl.stcField.u2SELECT_HOLD_DELAY        = config->holdDelay;
     tempCtl.stcField.u1BLOCK                    = config->blockEvent;
+    tempCtl.stcField.u1CLOCK_IF_SEL             = config->clkIfSrc;
 
     base->unCTL.u32Register = tempCtl.u32Register;
 
@@ -149,7 +150,7 @@ void Cy_SMIF_DeInit(volatile cy_stc_smif_reg_t *base)
     * The default value is 0. 
     */
     base->unCTL.u32Register = CY_SMIF_CTL_REG_DEFAULT;
-    base->unTX_DATA_FIFO_CTL.u32Register      = 0U;
+    base->unTX_DATA_MMIO_FIFO_CTL.u32Register      = 0U;
     base->unRX_DATA_MMIO_FIFO_CTL.u32Register = 0U;
     base->unINTR_MASK.u32Register             = 0U;
     for(uint32_t idx = 0UL; idx < CY_SMIF_GetDeviceNumber(base); idx++)
@@ -236,7 +237,7 @@ cy_en_smif_status_t  Cy_SMIF_Encrypt(volatile cy_stc_smif_reg_t *base,
         return CY_SMIF_BAD_PARAM;
     }
 
-    if(base->unCRYPTO_CMD.stcField.u1START != CY_SMIF_CRYPTO_COMPLETED)
+    if(base->SMIF_CRYPTO[0].unCRYPTO_CMD.stcField.u1START != CY_SMIF_CRYPTO_COMPLETED)
     {
         return CY_SMIF_BAD_STATUS;
     }
@@ -250,13 +251,13 @@ cy_en_smif_status_t  Cy_SMIF_Encrypt(volatile cy_stc_smif_reg_t *base,
         uint32_t addrOffset = i_AES_Block * CY_SMIF_AES128_BYTES;
 
         /* Fill the input field */
-        uint32_t validPosOfINPUT0 = base->unCRYPTO_INPUT0.u32Register & (~CY_SMIF_CRYPTO_ADDR_MASK);
-        base->unCRYPTO_INPUT0.u32Register = ((address + addrOffset) & CY_SMIF_CRYPTO_ADDR_MASK) + validPosOfINPUT0;
+        uint32_t validPosOfINPUT0 = base->SMIF_CRYPTO[0].unCRYPTO_INPUT0.u32Register & (~CY_SMIF_CRYPTO_ADDR_MASK);
+        base->SMIF_CRYPTO[0].unCRYPTO_INPUT0.u32Register = ((address + addrOffset) & CY_SMIF_CRYPTO_ADDR_MASK) + validPosOfINPUT0;
 
         /* Start the encryption */
-        base->unCRYPTO_CMD.stcField.u1START = CY_SMIF_CRYPTO_START;
+        base->SMIF_CRYPTO[0].unCRYPTO_CMD.stcField.u1START = CY_SMIF_CRYPTO_START;
 
-        while((base->unCRYPTO_CMD.stcField.u1START != CY_SMIF_CRYPTO_COMPLETED) && (CY_SMIF_EXCEED_TIMEOUT != status))
+        while((base->SMIF_CRYPTO[0].unCRYPTO_CMD.stcField.u1START != CY_SMIF_CRYPTO_COMPLETED) && (CY_SMIF_EXCEED_TIMEOUT != status))
         {
             /* Wait until the encryption is completed and check the 
             * timeout 
@@ -269,10 +270,10 @@ cy_en_smif_status_t  Cy_SMIF_Encrypt(volatile cy_stc_smif_reg_t *base,
             break;
         }
 
-        *(uint32_t*)&dataInOut[addrOffset]        ^= base->unCRYPTO_OUTPUT0.u32Register;
-        *(uint32_t*)&dataInOut[addrOffset + 4ul]  ^= base->unCRYPTO_OUTPUT1.u32Register;
-        *(uint32_t*)&dataInOut[addrOffset + 8ul]  ^= base->unCRYPTO_OUTPUT2.u32Register;
-        *(uint32_t*)&dataInOut[addrOffset + 12ul] ^= base->unCRYPTO_OUTPUT3.u32Register;
+        *(uint32_t*)&dataInOut[addrOffset]        ^= base->SMIF_CRYPTO[0].unCRYPTO_OUTPUT0.u32Register;
+        *(uint32_t*)&dataInOut[addrOffset + 4ul]  ^= base->SMIF_CRYPTO[0].unCRYPTO_OUTPUT1.u32Register;
+        *(uint32_t*)&dataInOut[addrOffset + 8ul]  ^= base->SMIF_CRYPTO[0].unCRYPTO_OUTPUT2.u32Register;
+        *(uint32_t*)&dataInOut[addrOffset + 12ul] ^= base->SMIF_CRYPTO[0].unCRYPTO_OUTPUT3.u32Register;
     }
     return (status);
 }
@@ -320,7 +321,7 @@ cy_en_smif_status_t Cy_SMIF_SetDelayLineForFreq(volatile cy_stc_smif_reg_t *base
     // Check all scan lines whether the number of taps required to hit the nominal center of the data eye are below the actual number of taps per delay line
     for(delayLine = 0; delayLine < CY_SMIF_DRV_SMIF0_DELAY_LINES_NR; delayLine++)
     {
-        tapNumCalculated = (uint8_t) ((dataPeriodCenterNs / minDelayPerTapInNs[delayLine]) + 0.5);
+        tapNumCalculated = (uint8_t) ((dataPeriodCenterNs / minDelayPerTapInNs[delayLine]) + 0.5f);
         if(tapNumCalculated <= maxTaps)
         {
             break;
@@ -350,8 +351,6 @@ cy_en_smif_status_t Cy_SMIF_SetDelayLineForFreq(volatile cy_stc_smif_reg_t *base
 ****************************************************************************//**
 *
 * This function sets Data Learning Pattern to be compared.
-* DLP width is constant 8bits. Although input value is 16bit integer, upper 8bits
-* will be ignored.
 *
 * \param base
 * Holds the base address of the SMIF block registers.
@@ -362,7 +361,7 @@ cy_en_smif_status_t Cy_SMIF_SetDelayLineForFreq(volatile cy_stc_smif_reg_t *base
 *******************************************************************************/
 void Cy_SMIF_SetMasterDLP(volatile cy_stc_smif_reg_t *base, uint16_t dlp)
 {
-    base->unDLP.stcField.u8DLP = (uint8_t)dlp;
+    base->unDL_CTL.stcField.u16DLP = dlp;
 }
 
 /*******************************************************************************
@@ -379,7 +378,7 @@ void Cy_SMIF_SetMasterDLP(volatile cy_stc_smif_reg_t *base, uint16_t dlp)
 *******************************************************************************/
 uint16_t Cy_SMIF_GetMasterDLP(volatile cy_stc_smif_reg_t *base)
 {
-    return (uint16_t)(base->unDLP.stcField.u8DLP);
+    return (uint16_t)(base->unDL_CTL.stcField.u16DLP);
 }
 
 /*******************************************************************************
@@ -387,29 +386,26 @@ uint16_t Cy_SMIF_GetMasterDLP(volatile cy_stc_smif_reg_t *base)
 ****************************************************************************//**
 *
 * This function writes DLP size to the register.
-* The size of DLP is contstant 8bits, thus this function has no effect.
-* If 8 is input as a size, this function returns status of success. otherwise, 
-* returns of status of failure.
 *
 * \param base
 * Holds the base address of the SMIF block registers.
 *
 * \param size
-* DLP size value to be set to the register. Can be only 8.
+* DLP size value to be set to the register. Can be 1 ~ 16.
 *
 * \return \ref cy_en_smif_status_t
 *
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_SetMasterDLP_Size(volatile cy_stc_smif_reg_t *base, uint32_t size)
 {
-    if(size == 8ul)
-    {
-    	return CY_SMIF_SUCCESS;
-    }
-    else
+    if((size == 0) || (16 < size))
     {
         return CY_SMIF_BAD_PARAM;
     }
+
+    base->unDL_CTL.stcField.u4DLP_SIZE = size - 1ul;
+
+    return CY_SMIF_SUCCESS;
 }
 
 /*******************************************************************************
@@ -417,7 +413,6 @@ cy_en_smif_status_t Cy_SMIF_SetMasterDLP_Size(volatile cy_stc_smif_reg_t *base, 
 ****************************************************************************//**
 *
 * This function reads DLP size which have been set.
-* The size of DLP is contstant 8bits, thus this function returns 8.
 *
 * \param base
 * Holds the base address of the SMIF block registers.
@@ -427,14 +422,14 @@ cy_en_smif_status_t Cy_SMIF_SetMasterDLP_Size(volatile cy_stc_smif_reg_t *base, 
 *******************************************************************************/
 uint8_t Cy_SMIF_GetMasterDLP_Size(volatile cy_stc_smif_reg_t *base)
 {
-    return (uint8_t)(8u);
+    return (uint8_t)(base->unDL_CTL.stcField.u4DLP_SIZE);
 }
 
 /*******************************************************************************
 * Function Name: Cy_SMIF_SetMasterDLP_WarnLevel
 ****************************************************************************//**
 *
-* This function does not anything and returns status of success.
+* This function writes DLP warning level to the register.
 *
 * \param base
 * Holds the base address of the SMIF block registers.
@@ -447,6 +442,13 @@ uint8_t Cy_SMIF_GetMasterDLP_Size(volatile cy_stc_smif_reg_t *base)
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_SetMasterDLP_WarnLevel(volatile cy_stc_smif_reg_t *base, uint32_t warnLevel)
 {
+    if(15 < warnLevel)
+    {
+        return CY_SMIF_BAD_PARAM;
+    }
+
+    base->unDL_CTL.stcField.u4DL_WARNING_LEVEL = warnLevel;
+
     return CY_SMIF_SUCCESS;
 }
 
@@ -454,7 +456,7 @@ cy_en_smif_status_t Cy_SMIF_SetMasterDLP_WarnLevel(volatile cy_stc_smif_reg_t *b
 * Function Name: Cy_SMIF_GetMasterDLP_WarnLevel
 ****************************************************************************//**
 *
-* This function returns 0.
+* This function reads DLP warning level which have been set.
 *
 * \param base
 * Holds the base address of the SMIF block registers.
@@ -464,7 +466,7 @@ cy_en_smif_status_t Cy_SMIF_SetMasterDLP_WarnLevel(volatile cy_stc_smif_reg_t *b
 *******************************************************************************/
 uint8_t Cy_SMIF_GetMasterDLP_WarnLevel(volatile cy_stc_smif_reg_t *base)
 {
-    return (uint8_t)0u;
+    return (uint8_t)(base->unDL_CTL.stcField.u4DL_WARNING_LEVEL);
 }
 
 /*******************************************************************************
@@ -562,7 +564,8 @@ cy_en_smif_delay_line_t Cy_SMIF_Get_DelayLineSel(volatile cy_stc_smif_reg_t *bas
 * To ensure compatibility with users of this API independent of the current
 * SMIF IP version, it accepts any SMIF pointer as parameter, e.g. a SMIF base
 * pointer or a SMIF_DEVICE base pointer. This means this API can be called with
-* a SMIF_DEVICE base pointer.
+* a SMIF_DEVICE base pointer and the calling code will work with CY_SMIF_NEW_VERSION
+* or CY_SMIF_OLD_VERSION
 *
 * \param smif_or_device_base
 * Holds the base address of the SMIF block or SMIF_DEVICE block registers.
@@ -575,16 +578,18 @@ cy_en_smif_delay_line_t Cy_SMIF_Get_DelayLineSel(volatile cy_stc_smif_reg_t *bas
 *******************************************************************************/
 cy_en_smif_status_t Cy_SMIF_Set_DelayTapSel(volatile void *smif_or_device_base, uint8_t tapSel)
 {
-    // Ensure that if a device pointer has been passed, it is converted to a SMIF base pointer
-    volatile stc_SMIF_t * base = Cy_SMIF_GetSmifBasePtrFromAnySmifPtr(smif_or_device_base);
-    
-    if(tapSel > (CY_SMIF_GetDelayTapsNumber(base) - 1))
+    if(tapSel > (CY_SMIF_GetDelayTapsNumber(smif_or_device_base) - 1))
     {
-      return CY_SMIF_BAD_PARAM;
+        return CY_SMIF_BAD_PARAM;
     }
-    
-    base->unDELAY_TAP_SEL.stcField.u8SEL = tapSel;
-    
+
+    if((smif_or_device_base != CY_SMIF_DRV_SMIF0_CORE0_DEVICE0) && (smif_or_device_base != CY_SMIF_DRV_SMIF0_CORE0_DEVICE1))
+    {
+        return CY_SMIF_BAD_PARAM;
+    }
+
+    ((volatile cy_stc_smif_reg_device_t*)smif_or_device_base)->unDELAY_TAP_SEL.stcField.u8SEL = tapSel;
+
     return CY_SMIF_SUCCESS;
 }
 
@@ -596,7 +601,8 @@ cy_en_smif_status_t Cy_SMIF_Set_DelayTapSel(volatile void *smif_or_device_base, 
 * To ensure compatibility with users of this API independent of the current
 * SMIF IP version, it accepts any SMIF pointer as parameter, e.g. a SMIF base
 * pointer or a SMIF_DEVICE base pointer. This means this API can be called with
-* a SMIF_DEVICE base pointer.
+* a SMIF_DEVICE base pointer and the calling code will work with CY_SMIF_NEW_VERSION
+* or CY_SMIF_OLD_VERSION
 *
 * \param smif_or_device_base
 * Holds the base address of the SMIF block or SMIF_DEVICE block registers.
@@ -606,10 +612,15 @@ cy_en_smif_status_t Cy_SMIF_Set_DelayTapSel(volatile void *smif_or_device_base, 
 *******************************************************************************/
 uint8_t Cy_SMIF_Get_DelayTapSel(volatile void *smif_or_device_base)
 {
-    // Ensure that if a device pointer has been passed, it is converted to a SMIF base pointer
-    volatile stc_SMIF_t * base = Cy_SMIF_GetSmifBasePtrFromAnySmifPtr(smif_or_device_base);
-
-    return (uint8_t)(base->unDELAY_TAP_SEL.stcField.u8SEL);
+    if((smif_or_device_base == CY_SMIF_DRV_SMIF0_CORE0_DEVICE0) || (smif_or_device_base == CY_SMIF_DRV_SMIF0_CORE0_DEVICE1))
+    {
+        return (uint8_t)(((volatile cy_stc_smif_reg_device_t*)smif_or_device_base)->unDELAY_TAP_SEL.stcField.u8SEL);
+    }
+    else
+    {
+        // Bad parameter input.
+        return 0u;
+    }
 }
 
 /*******************************************************************************
@@ -630,7 +641,7 @@ uint8_t Cy_SMIF_Get_DelayTapSel(volatile void *smif_or_device_base)
 void Cy_SMIF_SetTxFifoTriggerLevel(volatile cy_stc_smif_reg_t *base, uint32_t level)
 {
     CY_ASSERT_L2(level < CY_SMIF_MAX_TX_TR_LEVEL);
-    base->unTX_DATA_FIFO_CTL.u32Register = level;
+    base->unTX_DATA_MMIO_FIFO_CTL.u32Register = level;
 }
 
 /*******************************************************************************
@@ -647,10 +658,10 @@ void Cy_SMIF_SetTxFifoTriggerLevel(volatile cy_stc_smif_reg_t *base, uint32_t le
 *******************************************************************************/
 void Cy_SMIF_SetCryptoInput128(volatile cy_stc_smif_reg_t *base, const uint8_t inData[])
 {
-    base->unCRYPTO_INPUT0.u32Register = *(uint32_t*)&inData[0u];
-    base->unCRYPTO_INPUT1.u32Register = *(uint32_t*)&inData[4u];
-    base->unCRYPTO_INPUT2.u32Register = *(uint32_t*)&inData[8u];
-    base->unCRYPTO_INPUT3.u32Register = *(uint32_t*)&inData[12u];
+    base->SMIF_CRYPTO[0].unCRYPTO_INPUT0.u32Register = *(uint32_t*)&inData[0u];
+    base->SMIF_CRYPTO[0].unCRYPTO_INPUT1.u32Register = *(uint32_t*)&inData[4u];
+    base->SMIF_CRYPTO[0].unCRYPTO_INPUT2.u32Register = *(uint32_t*)&inData[8u];
+    base->SMIF_CRYPTO[0].unCRYPTO_INPUT3.u32Register = *(uint32_t*)&inData[12u];
 }
 
 /*******************************************************************************
@@ -667,10 +678,10 @@ void Cy_SMIF_SetCryptoInput128(volatile cy_stc_smif_reg_t *base, const uint8_t i
 *******************************************************************************/
 void Cy_SMIF_SetCryptoKey128(volatile cy_stc_smif_reg_t *base, const uint8_t key[])
 {
-    base->unCRYPTO_KEY0.u32Register = *(uint32_t*)&key[0u];
-    base->unCRYPTO_KEY1.u32Register = *(uint32_t*)&key[4u];
-    base->unCRYPTO_KEY2.u32Register = *(uint32_t*)&key[8u];
-    base->unCRYPTO_KEY3.u32Register = *(uint32_t*)&key[12u];
+    base->SMIF_CRYPTO[0].unCRYPTO_KEY0.u32Register = *(uint32_t*)&key[0u];
+    base->SMIF_CRYPTO[0].unCRYPTO_KEY1.u32Register = *(uint32_t*)&key[4u];
+    base->SMIF_CRYPTO[0].unCRYPTO_KEY2.u32Register = *(uint32_t*)&key[8u];
+    base->SMIF_CRYPTO[0].unCRYPTO_KEY3.u32Register = *(uint32_t*)&key[12u];
 }
 
 /*******************************************************************************
@@ -687,7 +698,7 @@ void Cy_SMIF_SetCryptoKey128(volatile cy_stc_smif_reg_t *base, const uint8_t key
 *******************************************************************************/
 uint32_t  Cy_SMIF_GetTxFifoStatus(volatile cy_stc_smif_reg_t *base)
 {
-    return (base->unTX_DATA_FIFO_STATUS.stcField.u4USED4);
+    return (base->unTX_DATA_MMIO_FIFO_STATUS.stcField.u4USED4);
 }
 
 /*******************************************************************************
@@ -710,7 +721,7 @@ void Cy_SMIF_PushCmdFifo(volatile cy_stc_smif_reg_t *base, uint32_t data[], uint
 {
     for(uint32_t idx = 0ul; idx < sizeInWord; idx++)
     {
-        base->unTX_CMD_FIFO_WR.u32Register = data[idx];
+        base->unTX_CMD_MMIO_FIFO_WR.u32Register = data[idx];
     }
 }
 
@@ -745,11 +756,11 @@ void Cy_SMIF_PushTxFifo(volatile cy_stc_smif_reg_t *baseaddr, cy_stc_smif_contex
     uint32_t* ptr1ByteFifo;
     if((context->preCmdDataRate == CY_SMIF_DDR) &&(context->preCmdWidth == CY_SMIF_WIDTH_OCTAL))
     {
-        ptr1ByteFifo = (uint32_t*)&(baseaddr->unTX_DATA_FIFO_WR1ODD);
+        ptr1ByteFifo = (uint32_t*)&(baseaddr->unTX_DATA_MMIO_FIFO_WR1ODD);
     }
     else
     {
-        ptr1ByteFifo = (uint32_t*)&(baseaddr->unTX_DATA_FIFO_WR1);
+        ptr1ByteFifo = (uint32_t*)&(baseaddr->unTX_DATA_MMIO_FIFO_WR1);
     }
 
     /* Check that after a FIFO Write, no data/FIFO space remains */
@@ -768,24 +779,24 @@ void Cy_SMIF_PushTxFifo(volatile cy_stc_smif_reg_t *baseaddr, cy_stc_smif_contex
             }
             else if((writeBytes == 2u) || (writeBytes == 3u))
             {
-                baseaddr->unTX_DATA_FIFO_WR2.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], false);
+                baseaddr->unTX_DATA_MMIO_FIFO_WR2.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], false);
                 writeBytes = 2u;
             }
             else if((writeBytes == 4u) || (writeBytes == 5u))
             {
-                baseaddr->unTX_DATA_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], true);
+                baseaddr->unTX_DATA_MMIO_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], true);
                 writeBytes = 4u;
             }
             else if((writeBytes == 6u) || (writeBytes == 7u))
             {
-                baseaddr->unTX_DATA_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], true);
-                baseaddr->unTX_DATA_FIFO_WR2.u32Register = Cy_SMIF_PackBytesArray(&buff[4U], false);
+                baseaddr->unTX_DATA_MMIO_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], true);
+                baseaddr->unTX_DATA_MMIO_FIFO_WR2.u32Register = Cy_SMIF_PackBytesArray(&buff[4U], false);
                 writeBytes = 6u;
             }
             else /* writeBytes => 8*/
             {
-                baseaddr->unTX_DATA_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], true);
-                baseaddr->unTX_DATA_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[4U], true);
+                baseaddr->unTX_DATA_MMIO_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[0U], true);
+                baseaddr->unTX_DATA_MMIO_FIFO_WR4.u32Register = Cy_SMIF_PackBytesArray(&buff[4U], true);
                 writeBytes = 8u;
             }
             buff          = &buff[writeBytes];

@@ -19,7 +19,7 @@ typedef enum {
     z = 2
 } Axis_t;
 
-// ???ï¿½G??
+// ???ŽG??
 typedef struct {
     float acc[3];   // ?????????? (g) x,y,z
     float gyro[3];  // ?????????? (??/s) x,y,z
@@ -35,7 +35,6 @@ typedef struct {
     float last_roll;  
     float last_pitch;  
     float last_yaw;
-    float zero_yaw;
 } euler_angles_t;
 
 typedef struct {

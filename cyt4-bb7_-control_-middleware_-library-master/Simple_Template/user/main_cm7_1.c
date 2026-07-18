@@ -106,9 +106,9 @@
 #define INCLUDE_BOUNDARY_TYPE   0
 
 
-#define WIFI_SSID_TEST          "SEEKFREE"
-#define WIFI_PASSWORD_TEST      "12345678"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
-#define TCP_TARGET_IP           "192.168.137.1"             // 连接目标的 IP
+#define WIFI_SSID_TEST          "qianhua"
+#define WIFI_PASSWORD_TEST      "c66xp2js"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
+#define TCP_TARGET_IP           "10.104.254.94"             // 连接目标的 IP
 #define TCP_TARGET_PORT         "8086"                      // 连接目标的端口
 #define WIFI_LOCAL_PORT         "6666"                      // 本机的端口 0：随机  可设置范围2048-65535  默认 6666
 

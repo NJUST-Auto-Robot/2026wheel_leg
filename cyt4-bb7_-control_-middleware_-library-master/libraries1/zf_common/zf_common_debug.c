@@ -244,7 +244,7 @@ uint32 debug_read_ring_buffer (uint8 *buff, uint32 len)
 // 备注信息     本函数需要开启 DEBUG_UART_USE_INTERRUPT 宏定义才可使用
 //              并且本函数默认放置在 UART1 的串口接收中断处理处
 //-------------------------------------------------------------------------------------------------------------------
-void debug_interrupr_handler (void)
+void debug_interrupt_handler (void)
 {
     if(zf_debug_init_flag)
     {

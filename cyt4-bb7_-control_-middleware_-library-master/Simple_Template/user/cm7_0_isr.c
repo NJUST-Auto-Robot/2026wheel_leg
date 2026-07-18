@@ -49,7 +49,7 @@
 #include "System/usr_uart.hpp"
 #include "usr_system.hpp"
 #include "Module/IMU660RB/imu_data.h"
-
+#include "Controller/CRSF.h"
 /**
  * @brief 串口空闲状态判断
  *
@@ -107,12 +107,6 @@ void pit0_ch0_isr() {
     debug_print_f = true;
     f = 0;
   }
-  handleWhenIdle(0); // debug串口空闲时，进行回调处理 
-  handleWhenIdle(1); // 串口1空闲时，进行回调处理 
-  handleWhenIdle(2); // 串口2空闲时，进行回调处理 
-  handleWhenIdle(3); // 串口3空闲时，进行回调处理 
-  handleWhenIdle(4); // 串口4空闲时，进行回调处理 
-  handleWhenIdle(5); // 串口5空闲时，进行回调处理
 }
 
 void pit0_ch1_isr() {   
@@ -197,7 +191,7 @@ void gpio_23_exti_isr() {}
 void uart0_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_0)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口0接收中断
     
-    uart0_read_byte(); // 读取一个字节进入 fifo
+    //uart0_read_byte(); // 读取一个字节进入 fifo
 
     // #if DEBUG_UART_USE_INTERRUPT // 如果开启 debug 串口中断
     // // 调用 debug 串口接收处理函数 数据会被 debug 环形缓冲区读取
@@ -218,7 +212,7 @@ void uart0_isr(void) {
 void uart1_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_1)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口1接收中断    
     
-    uart1_read_byte(); // 读取一个字节进入 fifo
+    //uart1_read_byte(); // 读取一个字节进入 fifo
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_1), CY_SCB_UART_RX_NOT_EMPTY);
@@ -237,7 +231,7 @@ void uart1_isr(void) {
 void uart2_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_2)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口2接收中断
     
-    uart2_read_byte(); // 读取一个字节进入 fifo
+    //uart2_read_byte(); // 读取一个字节进入 fifo
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_2), CY_SCB_UART_RX_NOT_EMPTY);
@@ -251,7 +245,7 @@ void uart2_isr(void) {
 void uart3_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_3)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口3接收中断
     
-    uart3_read_byte(); // 读取一个字节进入 fifo
+    //uart3_read_byte(); // 读取一个字节进入 fifo
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_3), CY_SCB_UART_RX_NOT_EMPTY);
@@ -268,7 +262,7 @@ void uart3_isr(void) {
 void uart4_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_4)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口4接收中断
     
-    uart4_callback(); 
+    //uart4_callback(); 
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4), CY_SCB_UART_RX_NOT_EMPTY);

@@ -106,18 +106,16 @@ void uartSingleInit(uint8_t uart_id, uint32_t baudrate, bool is_sbus,
   // 初始化引脚和波特率
   if (is_sbus)
     uart_sbus_init((uart_index_enum)uart_id, baudrate,
-                   (uart_tx_pin_enum)uart_id, (uart_rx_pin_enum)uart_id,
-                   data_bit_num, verification_type, stop_bit_num);
+                   (uart_tx_pin_enum)uart_id, (uart_rx_pin_enum)uart_id,8,1,NULL);
   else
     uart_init((uart_index_enum)uart_id, baudrate, (uart_tx_pin_enum)uart_id,
-              (uart_rx_pin_enum)uart_id, data_bit_num, verification_type,
-              stop_bit_num);
+              (uart_rx_pin_enum)uart_id,8,1,NULL);
 
   // 初始化串口的fifo
   fifo_init(puart_fifo_s[uart_id], FIFO_DATA_8BIT, uart_buffer_s[uart_id],
             uart_buffer_len_s[uart_id]);
   // 使能对应串口接收中断
-  uart_rx_interrupt((uart_index_enum)uart_id, 1);
+  uart_rx_interrupt((uart_index_enum)uart_id, 0);
 }
 
 /**
@@ -125,12 +123,7 @@ void uartSingleInit(uint8_t uart_id, uint32_t baudrate, bool is_sbus,
  *
  */
 void usrUartInit(void) {
-  uartSingleInit(UART_4, 115200, false, 8, CY_SCB_UART_PARITY_NONE,
-                 CY_SCB_UART_STOP_BITS_1);
-  uartSingleInit(UART_5, 115200, false, 8, CY_SCB_UART_PARITY_NONE,
-                 CY_SCB_UART_STOP_BITS_1);
-  uartSingleInit(UART_2, 420000, false, 8, CY_SCB_UART_PARITY_NONE,
-                 CY_SCB_UART_STOP_BITS_1);
+
 }
 
 /**

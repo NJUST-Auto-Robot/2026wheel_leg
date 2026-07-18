@@ -61,7 +61,7 @@ void uart1_isr(void);
 void uart2_isr(void);
 void uart3_isr(void);
 void uart4_isr(void);
-//void uart5_isr(void);
+void uart5_isr(void);
 
 typedef struct {
   volatile stc_GPIO_PRT_t *rx_port;
@@ -74,8 +74,8 @@ typedef struct {
   cy_en_intr_t uart_irqn;
 } uart_config_struct;
 
-void (*uart_isr_func[5])() = {uart0_isr, uart1_isr, uart2_isr, uart3_isr,
-                              uart4_isr};
+void (*uart_isr_func[6])() = {uart0_isr, uart1_isr, uart2_isr, uart3_isr,
+                              uart4_isr, uart5_isr};
 cy_stc_scb_uart_context_t uart_context[6] = {0};
 volatile stc_SCB_t *scb_module[6] = {SCB0, SCB5, SCB4, SCB3, SCB2, SCB6};
 //-------------------------------------------------------------------------------------------------------------------

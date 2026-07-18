@@ -45,6 +45,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "Algorithm/Filters/filters.hpp"
+#include "Module/SoundProcess/sound_process.hpp"
 #include "System/usr_uart.hpp"
 #include "Utility/VOFAplus/VOFAplus.hpp"
 #include "zf_driver_adc.h"

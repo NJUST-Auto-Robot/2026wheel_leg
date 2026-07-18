@@ -142,7 +142,7 @@ void uart0_isr (void)
     {
         
 #if DEBUG_UART_USE_INTERRUPT             // 如果开启 debug 串口中断
-        debug_interrupr_handler();       // 调用 debug 串口接收处理函数 数据会被 debug 环形缓冲区读取
+        debug_interrupt_handler();       // 调用 debug 串口接收处理函数 数据会被 debug 环形缓冲区读取
 #endif                                   // 如果修改了 DEBUG_UART_INDEX 那这段代码需要放到对应的串口中断去
       
     }
@@ -159,7 +159,7 @@ void uart1_isr (void)
     if(uart_isr_mask(UART_1))            // 串口1接收中断
     {
         
-        wireless_module_uart_handler();  // 无线模块统一回调函数
+        //wireless_module_uart_handler();  // 无线模块统一回调函数
       
     }
     else                                // 串口1发送中断
@@ -173,10 +173,7 @@ void uart1_isr (void)
 void uart2_isr (void)
 {
     if(uart_isr_mask(UART_2))            // 串口2接收中断
-    {
-        
-        gnss_uart_callback();            // GPS模块回调函数      
-        
+    {       
     }
     else                                // 串口2发送中断
     {

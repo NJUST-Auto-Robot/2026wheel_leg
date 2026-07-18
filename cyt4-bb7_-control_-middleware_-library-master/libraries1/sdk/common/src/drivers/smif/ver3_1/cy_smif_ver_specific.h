@@ -2,7 +2,7 @@
 * \file cy_smif_ver_specific.h
 * \version `$CY_MAJOR_VERSION`.`$CY_MINOR_VERSION`
 *
-* Provides an API declaration of the Cypress SMIF v2.0 driver.
+* Provides an API declaration of the Cypress SMIF v3.1 driver.
 *
 ********************************************************************************
 * \copyright
@@ -45,18 +45,19 @@ typedef un_SMIF_CTL_t                               cy_un_smif_reg_ctl_t;
 typedef un_SMIF_STATUS_t                            cy_un_smif_reg_status_t;
 typedef un_SMIF_INT_CLOCK_DELAY_TAP_SEL0_t          cy_un_smif_reg_dlp_delay_tap_sel0_t;
 typedef un_SMIF_INT_CLOCK_DELAY_TAP_SEL1_t          cy_un_smif_reg_dlp_delay_tap_sel1_t;
-typedef un_SMIF_DLP_t                               cy_un_smif_reg_dlp_ctl_t;
+typedef un_SMIF_DL_CTL_t                            cy_un_smif_reg_dlp_ctl_t;
 typedef un_SMIF_DL_STATUS0_t                        cy_un_smif_reg_dlp_status0_t;
 typedef un_SMIF_DL_STATUS1_t                        cy_un_smif_reg_dlp_status1_t;
-typedef un_SMIF_DELAY_TAP_SEL_t                     cy_un_smif_reg_delay_tap_sel_t;
 typedef un_SMIF_TX_CMD_FIFO_STATUS_t                cy_un_smif_reg_tx_cmd_fifo_status_t;
-typedef un_SMIF_TX_CMD_FIFO_WR_t                    cy_un_smif_reg_tx_cmd_fifo_wr_t;
-typedef un_SMIF_TX_DATA_FIFO_CTL_t                  cy_un_smif_reg_tx_data_fifo_ctl_t;
+typedef un_SMIF_TX_CMD_MMIO_FIFO_STATUS_t           cy_un_smif_reg_tx_cmd_mmio_fifo_status_t;
+typedef un_SMIF_TX_CMD_MMIO_FIFO_WR_t               cy_un_smif_reg_tx_cmd_mmio_fifo_wr_t;
+typedef un_SMIF_TX_DATA_MMIO_FIFO_CTL_t             cy_un_smif_reg_tx_data_mmio_fifo_ctl_t;
 typedef un_SMIF_TX_DATA_FIFO_STATUS_t               cy_un_smif_reg_tx_data_fifo_status_t;
-typedef un_SMIF_TX_DATA_FIFO_WR1_t                  cy_un_smif_reg_tx_data_fifo_wr1_t;
-typedef un_SMIF_TX_DATA_FIFO_WR2_t                  cy_un_smif_reg_tx_data_fifo_wr2_t;
-typedef un_SMIF_TX_DATA_FIFO_WR4_t                  cy_un_smif_reg_tx_data_fifo_wr4_t;
-typedef un_SMIF_TX_DATA_FIFO_WR1ODD_t               cy_un_smif_reg_tx_data_fifo_wr1odd_t;
+typedef un_SMIF_TX_DATA_MMIO_FIFO_STATUS_t          cy_un_smif_reg_tx_data_mmio_fifo_status_t;
+typedef un_SMIF_TX_DATA_MMIO_FIFO_WR1_t             cy_un_smif_reg_tx_data_mmio_fifo_wr1_t;
+typedef un_SMIF_TX_DATA_MMIO_FIFO_WR2_t             cy_un_smif_reg_tx_data_mmio_fifo_wr2_t;
+typedef un_SMIF_TX_DATA_MMIO_FIFO_WR4_t             cy_un_smif_reg_tx_data_mmio_fifo_wr4_t;
+typedef un_SMIF_TX_DATA_MMIO_FIFO_WR1ODD_t          cy_un_smif_reg_tx_data_mmio_fifo_wr1odd_t;
 typedef un_SMIF_RX_DATA_MMIO_FIFO_CTL_t             cy_un_smif_reg_rx_data_mmio_fifo_ctl_t;
 typedef un_SMIF_RX_DATA_MMIO_FIFO_STATUS_t          cy_un_smif_reg_rx_data_mmio_fifo_status_t;
 typedef un_SMIF_RX_DATA_FIFO_STATUS_t               cy_un_smif_reg_rx_data_fifo_status_t;
@@ -68,19 +69,6 @@ typedef un_SMIF_SLOW_CA_CTL_t                       cy_un_smif_reg_slow_ca_ctl_t
 typedef un_SMIF_SLOW_CA_CMD_t                       cy_un_smif_reg_slow_ca_cmd_t;
 typedef un_SMIF_FAST_CA_CTL_t                       cy_un_smif_reg_fast_ca_ctl_t;
 typedef un_SMIF_FAST_CA_CMD_t                       cy_un_smif_reg_fast_ca_cmd_t;
-typedef un_SMIF_CRYPTO_CMD_t                        cy_un_smif_reg_crypto_cmd_t;
-typedef un_SMIF_CRYPTO_INPUT0_t                     cy_un_smif_reg_crypto_input0_t;
-typedef un_SMIF_CRYPTO_INPUT1_t                     cy_un_smif_reg_crypto_input1_t;
-typedef un_SMIF_CRYPTO_INPUT2_t                     cy_un_smif_reg_crypto_input2_t;
-typedef un_SMIF_CRYPTO_INPUT3_t                     cy_un_smif_reg_crypto_input3_t;
-typedef un_SMIF_CRYPTO_KEY0_t                       cy_un_smif_reg_crypto_key0_t;
-typedef un_SMIF_CRYPTO_KEY1_t                       cy_un_smif_reg_crypto_key1_t;
-typedef un_SMIF_CRYPTO_KEY2_t                       cy_un_smif_reg_crypto_key2_t;
-typedef un_SMIF_CRYPTO_KEY3_t                       cy_un_smif_reg_crypto_key3_t;
-typedef un_SMIF_CRYPTO_OUTPUT0_t                    cy_un_smif_reg_crypto_output0_t;
-typedef un_SMIF_CRYPTO_OUTPUT1_t                    cy_un_smif_reg_crypto_output1_t;
-typedef un_SMIF_CRYPTO_OUTPUT2_t                    cy_un_smif_reg_crypto_output2_t;
-typedef un_SMIF_CRYPTO_OUTPUT3_t                    cy_un_smif_reg_crypto_output3_t;
 typedef un_SMIF_CRC_CMD_t                           cy_un_smif_reg_crc_cmd_t;
 typedef un_SMIF_CRC_INPUT0_t                        cy_un_smif_reg_crc_input0_t;
 typedef un_SMIF_CRC_INPUT1_t                        cy_un_smif_reg_crc_input1_t;
@@ -89,12 +77,14 @@ typedef un_SMIF_INTR_t                              cy_un_smif_reg_intr_t;
 typedef un_SMIF_INTR_SET_t                          cy_un_smif_reg_intr_set_t;
 typedef un_SMIF_INTR_MASK_t                         cy_un_smif_reg_intr_mask_t;
 typedef un_SMIF_INTR_MASKED_t                       cy_un_smif_reg_intr_masked_t;
+typedef un_SMIF_INTR_CAUSE_t                        cy_un_smif_reg_cause_t;
 
 typedef stc_SMIF_DEVICE_t                           cy_stc_smif_reg_device_t;
 typedef un_SMIF_DEVICE_CTL_t                        cy_un_smif_reg_device_ctl_t;
 typedef un_SMIF_DEVICE_ADDR_t                       cy_un_smif_reg_device_addr_t;
 typedef un_SMIF_DEVICE_MASK_t                       cy_un_smif_reg_device_mask_t;
 typedef un_SMIF_DEVICE_ADDR_CTL_t                   cy_un_smif_reg_device_addr_ctl_t;
+typedef un_SMIF_DEVICE_DELAY_TAP_SEL_t              cy_un_smif_reg_device_capture_config_t;
 typedef un_SMIF_DEVICE_RD_STATUS_t                  cy_un_smif_reg_device_rd_status_t;
 typedef un_SMIF_DEVICE_RD_CMD_CTL_t                 cy_un_smif_reg_device_rd_cmd_ctl_t;
 typedef un_SMIF_DEVICE_RD_ADDR_CTL_t                cy_un_smif_reg_device_rd_addr_ctl_t;
@@ -109,6 +99,24 @@ typedef un_SMIF_DEVICE_WR_MODE_CTL_t                cy_un_smif_reg_device_wr_mod
 typedef un_SMIF_DEVICE_WR_DUMMY_CTL_t               cy_un_smif_reg_device_wr_dummy_ctl_t;
 typedef un_SMIF_DEVICE_WR_DATA_CTL_t                cy_un_smif_reg_device_wr_data_ctl_t;
 typedef un_SMIF_DEVICE_WR_CRC_CTL_t                 cy_un_smif_reg_device_wr_crc_ctl_t;
+
+typedef stc_SMIF_SMIF_CRYPTO_t                      cy_stc_smif_reg_crypto_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_CMD_t            cy_un_smif_reg_crypto_cmd_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_ADDR_t           cy_un_smif_reg_crypto_addr_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_MASK_t           cy_un_smif_reg_crypto_mask_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_SUBREGION_t      cy_un_smif_reg_crypto_subregion_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_INPUT0_t         cy_un_smif_reg_crypto_input0_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_INPUT1_t         cy_un_smif_reg_crypto_input1_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_INPUT2_t         cy_un_smif_reg_crypto_input2_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_INPUT3_t         cy_un_smif_reg_crypto_input3_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_KEY0_t           cy_un_smif_reg_crypto_key0_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_KEY1_t           cy_un_smif_reg_crypto_key1_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_KEY2_t           cy_un_smif_reg_crypto_key2_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_KEY3_t           cy_un_smif_reg_crypto_key3_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_OUTPUT0_t        cy_un_smif_reg_crypto_output0_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_OUTPUT1_t        cy_un_smif_reg_crypto_output1_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_OUTPUT2_t        cy_un_smif_reg_crypto_output2_t;
+typedef un_SMIF_SMIF_CRYPTO_CRYPTO_OUTPUT3_t        cy_un_smif_reg_crypto_output3_t;
 
 /* Definitions for smif register masks, so make it common (only for required entities) */
 #define CY_SMIF_DRV_DEVICE_ADDR_MSK                       SMIF_DEVICE_ADDR_ADDR_Msk
@@ -167,7 +175,7 @@ typedef enum
 
 /**
 * \addtogroup group_smif_version_specific_functions
-*  This device uses SMIF revision 2.0
+*  This device uses SMIF revision 3.1
 * \{
 */
 

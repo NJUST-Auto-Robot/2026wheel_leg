@@ -88,7 +88,7 @@ typedef struct
 
 #if DEBUG_UART_USE_INTERRUPT                                                            // 如果启用 debug uart 接收中断
 #define DEBUG_RING_BUFFER_LEN          (64)                                             // 定义环形缓冲区大小 默认 64byte
-void    debug_interrupr_handler        (void);
+void    debug_interrupt_handler        (void);
 uint32  debug_read_ring_buffer         (uint8 *buff, uint32 len);
 #endif
 

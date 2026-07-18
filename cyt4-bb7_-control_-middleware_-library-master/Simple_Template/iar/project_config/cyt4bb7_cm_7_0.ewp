@@ -709,7 +709,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>1</hasPrio>
+                <hasPrio>56</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -1158,12 +1158,12 @@
                 </file>
             </group>
             <group>
-                <name>PID</name>
+                <name>Mahony</name>
                 <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\PID\Pid.c</name>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Mahony\mahony.c</name>
                 </file>
                 <file>
-                    <name>$PROJ_DIR$\..\..\code\Algorithm\PID\Pid.h</name>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Mahony\mahony.h</name>
                 </file>
             </group>
         </group>

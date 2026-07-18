@@ -1,5 +1,4 @@
 #include "Motor.h"
-#include "Algorithm/PID/Pid.h"
 
 MotorPID_t wheel_speed_pid;
 
@@ -52,5 +51,4 @@ float MotorComputeTotalTorque(float target_linear_speed, float measured_wheel_sp
 
   return u_total;
 }
-
 
