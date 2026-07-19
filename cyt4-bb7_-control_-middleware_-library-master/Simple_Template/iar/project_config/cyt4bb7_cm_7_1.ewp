@@ -1129,6 +1129,21 @@
             <file>
                 <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.h</name>
             </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.h</name>
+            </file>
+        </group>
+        <group>
+            <name>Simple_PID</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\Simple_PID\PID.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\Simple_PID\PID.h</name>
+            </file>
         </group>
         <group>
             <name>System</name>
