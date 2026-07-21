@@ -40,38 +40,22 @@
 #include "System/usr_system.hpp"
 #include "zf_common_headfile.h"
 
-uint8_t ipc_init_over = 0;
-uint32 send_data_test = 0;
 // 定义数据接收回调函数 如果另外一个核心发送信息 此核心会触发中断并且可以在回调函数读取数据
-void my_ipc_callback(uint32 receive_data)
-{
-    ipc_init_over = 1;
-    printf("receive M7_1 data:%d\r\n", receive_data);        // 将接收到的数据打印到串口     
-}
 
 // **************************** 代码区域 ****************************
+
+
 
 int main(void) {
   clock_init(SYSTEM_CLOCK_250M);  // 时钟配置及系统初始化<务必保留>
   debug_init();                   // 调试串口信息初始化
-  
-  SCB_DisableDCache(); // 关闭DCache
-  
-  ipc_communicate_init(IPC_PORT_1, my_ipc_callback);          // 初始化IPC模块 选择端口1 填写中断回调函数
-    
+  uart_rx_interrupt(DEBUG_UART_INDEX, 1);                                           // 开启 UART_INDEX 的接收中断
+
   usrSystemInit();                // 用户系统初始化 包括外设和任务创建
   osKernelInitialize();           // 初始化FreeRTOS内核
-  osKernelStart();                // 开启FreeRTOS内核调度
+  osKernelStart();                // 开启FreeRTOS内核调 
   
   while (true) {
-    if(ipc_init_over == 1)
-    {
-      ipc_init_over = 2;
-      
-      
-    }
     /*假如FreeRTOS调度成功，那么不会运行这里面的代码*/
   }
 }
-
-// **************************** 任务将在system.cpp里运行 ****************************//

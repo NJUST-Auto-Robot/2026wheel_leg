@@ -50,6 +50,27 @@
 #include "usr_system.hpp"
 #include "Module/IMU660RB/imu_data.h"
 
+
+uint8_t get_data = 0;                                                            
+uint8_t r_data[5] = {0};
+
+// **************************** 任务将在system.cpp里运行 ****************************//
+// 函数简介       UART_INDEX 的接收中断处理函数 这个函数将在 UART_INDEX 对应的中断调用
+// 参数说明       void
+// 返回参数       void
+// 使用示例       uart_rx_interrupt_handler();
+//-------------------------------------------------------------------------------------------------------------------
+void uart_rx_interrupt_handler (void)
+{
+//    get_data = uart_read_byte(UART_INDEX);                                      // 接收数据 while 等待式 不建议在中断使用
+    if(uart_query_byte(DEBUG_UART_INDEX, &get_data))                                  // 接收数据 查询式 有数据会返回 TRUE 没有数据会返回 FALSE
+    {
+        r_data[0] = get_data;
+        //fifo_write_buffer(&uart_data_fifo, &get_data, 1);                       // 将数据写入 fifo 中
+        //uart_write_buffer(UART_INDEX, &get_data, 1);      // 将读取到的数据发送出去
+    }
+}
+
 /**
  * @brief 串口空闲状态判断
  *
@@ -194,25 +215,23 @@ void gpio_23_exti_isr() {}
 
 // **************************** 串口中断函数 ****************************
 // 串口0默认作为调试串口
-void uart0_isr(void) {
-  if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_0)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口0接收中断
-    
-    uart0_read_byte(); // 读取一个字节进入 fifo
-
-    // #if DEBUG_UART_USE_INTERRUPT // 如果开启 debug 串口中断
-    // // 调用 debug 串口接收处理函数 数据会被 debug 环形缓冲区读取
-    //   debug_interrupr_handler();
-    // #endif // 如果修改了 DEBUG_UART_INDEX 那这段代码需要放到对应的串口中断去
-
-    // 清除接收中断标志位
-    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_0), CY_SCB_UART_RX_NOT_EMPTY);
-  } 
-  else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_0)) & CY_SCB_UART_TX_DONE) //串口0发送中断
-  { 
-
-    // 清除接收中断标志位
-    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_0), CY_SCB_UART_TX_DONE);
-  }
+void uart0_isr (void)
+{
+    if(uart_isr_mask(UART_0))            // 串口0接收中断
+    {
+        
+#if DEBUG_UART_USE_INTERRUPT             // 如果开启 debug 串口中断
+        //debug_interrupr_handler();       // 调用 debug 串口接收处理函数 数据会被 debug 环形缓冲区读取
+#endif                                   // 如果修改了 DEBUG_UART_INDEX 那这段代码需要放到对应的串口中断去
+      
+        uart_rx_interrupt_handler();
+    }
+    else                                 // 串口0发送中断
+    {           
+        
+        
+        
+    }
 }
 
 void uart1_isr(void) {
@@ -268,7 +287,7 @@ void uart3_isr(void) {
 void uart4_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_4)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口4接收中断
     
-    uart4_callback(); 
+    //uart4_callback(); 
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4), CY_SCB_UART_RX_NOT_EMPTY);
@@ -282,7 +301,7 @@ void uart4_isr(void) {
 void uart5_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_5)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口5接收中断
     
-    CRSF_callback(); 
+    //CRSF_callback(); 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_5), CY_SCB_UART_RX_NOT_EMPTY);
   } 

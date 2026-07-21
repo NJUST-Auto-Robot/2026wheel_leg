@@ -27,13 +27,14 @@
 #include "zf_common_headfile.h"
 #include <math.h>
 // 任务所需包含头文件
-#include "algorithm/mahony/mahony.h"
 #include "Module/IMU660RB/imu_data.h"
 #include "Controller/LQR.h"
 #include "Controller/Motor.h"
 #include "Controller/VMC.h"
 #include "Controller/CRSF.h"
 #include "Controller/CRC8.h"
+
+uint8_t debug_rx_buff[1] = {0};
 
 // 外设宏定义
 #define TEST_LED (P19_0)
@@ -215,7 +216,7 @@ void USR_SYSTEM::peripheralInit(void) {
   gpio_init(TEST_LED, GPO, GPIO_LOW, GPO_PUSH_PULL);
 
   // 初始化IMU660RB
-  imu_init(&imu660rb);
+  //imu_init(&imu660rb);
 
   // 计算LQR增益矩阵
   LQR_ComputeK();                            

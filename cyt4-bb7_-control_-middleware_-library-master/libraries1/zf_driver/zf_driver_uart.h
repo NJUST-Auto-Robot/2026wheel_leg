@@ -95,9 +95,11 @@ typedef enum                           // 枚举串口号 此枚举定义不允许用户修改
     UART_6,                             // 注意：与SPI3资源冲突（当前库版本未使用SPI3）
 }uart_index_enum;
 
+uint8 uart_isr_mask(uart_index_enum uart_n);
+
 volatile stc_SCB_t* get_scb_module(uart_index_enum uart_n);
 
-uint8   uart_isr_mask                       (uart_index_enum uart_n);
+
 
 //====================================================串口 基础函数====================================================
 void    uart_write_byte                     (uart_index_enum uartn, const uint8 dat);
