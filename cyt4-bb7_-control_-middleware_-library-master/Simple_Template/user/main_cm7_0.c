@@ -43,6 +43,11 @@
 // 定义数据接收回调函数 如果另外一个核心发送信息 此核心会触发中断并且可以在回调函数读取数据
 
 // **************************** 代码区域 ****************************
+#define UART_INDEX              (DEBUG_UART_INDEX   )                           // 默认 UART_0
+#define UART_BAUDRATE           (DEBUG_UART_BAUDRATE)                           // 默认 115200
+#define UART_TX_PIN             (DEBUG_UART_TX_PIN  )                           // 默认 UART0_TX_P00_1
+#define UART_RX_PIN             (DEBUG_UART_RX_PIN  )                           // 默认 UART0_RX_P00_0
+
 
 
 
@@ -50,7 +55,7 @@ int main(void) {
   clock_init(SYSTEM_CLOCK_250M);  // 时钟配置及系统初始化<务必保留>
   debug_init();                   // 调试串口信息初始化
   uart_rx_interrupt(DEBUG_UART_INDEX, 1);                                           // 开启 UART_INDEX 的接收中断
-
+  
   usrSystemInit();                // 用户系统初始化 包括外设和任务创建
   osKernelInitialize();           // 初始化FreeRTOS内核
   osKernelStart();                // 开启FreeRTOS内核调 

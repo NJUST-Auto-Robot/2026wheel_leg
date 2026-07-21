@@ -39,6 +39,7 @@
 #include "MachineVision/find_center_line.h"
 #include "Simple_PID/PID.h"
 
+
 //wifi——spi告诉模块网络连接部分宏定义
 #define WIFI_SSID_TEST          "AutoRobot_201"
 #define WIFI_PASSWORD_TEST      "AuTo201#"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
@@ -54,7 +55,8 @@ uint8_t last_threshold = 0;
 uint8_t is_threshold_stable = 0;
 uint8_t the_flag_of_camera_init = 1;
 //串口发送变量
-uint8_t send_data[1] = {48};                                                            // 接收数据变量
+
+uint8_t send_data[1] = {48};                                                            // 接收数据变量                                                        // 接收数据变量
 
 int main(void)
 {   
@@ -65,31 +67,34 @@ int main(void)
     //uart_tx_interrupt(UART_INDEX, 1);                                           // 开启 发送中断
     
     //wifi——spi模块初始化
-    //while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
+    while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
     //等待网络连接
-    //if(1 != WIFI_SPI_AUTO_CONNECT)                                              // 如果没有开启自动连接 就需要手动连接目标 IP
-    //{
-        //while(wifi_spi_socket_connect(                                          // 向指定目标 IP 的端口建立 TCP 连接
-            //"TCP",                                                              // 指定使用TCP方式通讯
-            //TCP_TARGET_IP,                                                      // 指定远端的IP地址，填写上位机的IP地址
-            //TCP_TARGET_PORT,                                                    // 指定远端的端口号，填写上位机的端口号，通常上位机默认是8080
-            //WIFI_LOCAL_PORT))                                                   // 指定本机的端口号
-        //{
-            //;
-        //}
-    //}
+    if(1 != WIFI_SPI_AUTO_CONNECT)                                              // 如果没有开启自动连接 就需要手动连接目标 IP
+    {
+        while(wifi_spi_socket_connect(                                          // 向指定目标 IP 的端口建立 TCP 连接
+            "TCP",                                                              // 指定使用TCP方式通讯
+            TCP_TARGET_IP,                                                      // 指定远端的IP地址，填写上位机的IP地址
+            TCP_TARGET_PORT,                                                    // 指定远端的端口号，填写上位机的端口号，通常上位机默认是8080
+            WIFI_LOCAL_PORT))                                                   // 指定本机的端口号
+        {
+            ;
+        }
+    }
     //摄像头初始化
-    //mt9v03x_init();
+    mt9v03x_init();
     // 逐飞助手初始化 数据传输使用高速WIFI SPI
-    //seekfree_assistant_interface_init(SEEKFREE_ASSISTANT_WIFI_SPI);
+    seekfree_assistant_interface_init(SEEKFREE_ASSISTANT_WIFI_SPI);
     // 发送总钻风图像信息(仅包含原始图像信息)
-    //seekfree_assistant_camera_information_config(SEEKFREE_ASSISTANT_MT9V03X, image_copy[0], MT9V03X_W, MT9V03X_H);
+    seekfree_assistant_camera_information_config(SEEKFREE_ASSISTANT_MT9V03X, image_copy[0], MT9V03X_W, MT9V03X_H);
+
     
     // 此处编写用户代码 例如外设初始化代码等
     while(true)
     {
       // 此处编写需要循环执行的代码
+
         uart_write_buffer(DEBUG_UART_INDEX, send_data, 1);
+
 
       if(mt9v03x_finish_flag)
       {
