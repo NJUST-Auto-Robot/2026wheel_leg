@@ -38,100 +38,17 @@
 #include "MachineVision/find_block.h"
 #include "MachineVision/find_center_line.h"
 #include "Simple_PID/PID.h"
-// 打开新的工程或者工程移动了位置务必执行以下操作
-// 第一步 关闭上面所有打开的文件
-// 第二步 project->clean  等待下方进度条走完
-
-// *************************** 例程硬件连接说明 ***************************
-// 使用逐飞科技 DAP-LINK 调试下载器连接
-//      直接将下载器正确连接在核心板的调试下载接口即可
-//
-// 接入 高速Wifi SPI 模块
-//      模块管脚            单片机管脚
-//      RST                 查看 zf_device_wifi_spi.h 中 WIFI_SPI_RST_PIN 宏定义
-//      INT                 查看 zf_device_wifi_spi.h 中 WIFI_SPI_INT_PIN 宏定义
-//      CS                  查看 zf_device_wifi_spi.h 中 WIFI_SPI_CS_PIN 宏定义
-//      MISO                查看 zf_device_wifi_spi.h 中 WIFI_SPI_MISO_PIN 宏定义
-//      SCK                 查看 zf_device_wifi_spi.h 中 WIFI_SPI_SCK_PIN 宏定义
-//      MOSI                查看 zf_device_wifi_spi.h 中 WIFI_SPI_MOSI_PIN 宏定义
-//      5V                  5V 电源
-//      GND                 电源地
-
-
-// *************************** 例程使用步骤说明 ***************************
-// 1.根据硬件连接说明连接好模块，使用电源供电(下载器供电会导致模块电压不足)
-//
-// 2.查看电脑所连接的wifi，记录wifi名称，密码，IP地址
-//
-// 3.在下方的代码区域中修改宏定义，WIFI_SSID_TEST为wifi名称，WIFI_PASSWORD_TEST为wifi密码
-//
-// 4.打开zf_device_wifi_spi.h，修改WIFI_SPI_TARGET_IP宏定义，设置为电脑wifi的IP地址
-//
-// 5.下载例程到单片机中，打开逐飞助手上位机，打开下载器的串口
-//
-// 6.打开逐飞科技的逐飞助手软件，选择图像传输功能
-//
-// 7.选择网络，设置为TCP Server，本机地址中选择WIFI网络然后点击链接
-
-
-// *************************** 例程测试说明 ***************************
-// 1.本例程会通过 Debug 串口输出测试信息 请务必接好调试串口以便获取测试信息
-//
-// 2.连接好模块和核心板后（尽量使用配套主板测试以避免供电不足的问题） 烧录本例程 按下复位后程序开始运行
-//
-// 3.如果模块未能正常初始化 会通过 DEBUG 串口输出未能成功初始化的原因 随后程序会尝试重新初始化 一般情况下重试会成功
-//
-// 4.如果一直在 Debug 串口输出报错 就需要检查报错内容 并查看本文件下方的常见问题列表进行排查
-//
-// 5.程序默认不开启 WIFI_SPI_AUTO_CONNECT 宏定义 通过 main 函数中的接口建立网络链接 如果需要固定自行建立链接 可以开启该宏定义
-//
-// 6.当模块初始化完成后会通过 DEBUG 串口输出当前模块的主要信息：固件版本、IP信息、MAC信息、PORT信息
-//
-// 7.本例程是 TCP Client 例程 模块会被配置为 TCP Client 需要连接到局域网内的 TCP Server 才能进行通信
-//   目标连接的 TCP Server 的 IP 与端口默认使用 zf_device_wifi_spi.h 中 WIFI_SPI_TARGET_IP 与 WIFI_SPI_TARGET_PORT 定义
-//   实际测试需要根据现场 TCP Server 的实际 IP 地址与端口设置
-//
-// 8.当本机设备主动连接到 TCP Server （例如电脑使用逐飞助手上位机进入 TCP Server 模式 然后本机连接到电脑的 IP 与端口）
-//   本例程会采集总钻风图像并发送到逐飞助手上位机
-//
-// 9.默认情况下逐飞助手显示摄像头的图像帧率可以达到50帧，如果无线网络比较复杂例如附近有较多的WIFI热点，可能会导致显示帧率较低
-//
-//
-// 如果发现现象与说明严重不符 请参照本文件最下方 例程常见问题说明 进行排查
-
-
-// **************************** 代码区域 ****************************
-
-//0：不包含边界信息
-//1：包含三条边线信息，边线信息只包含横轴坐标，纵轴坐标由图像高度得到，意味着每个边界在一行中只会有一个点
-//2：包含三条边线信息，边界信息只含有纵轴坐标，横轴坐标由图像宽度得到，意味着每个边界在一列中只会有一个点，一般来说很少有这样的使用需求
-//3：包含三条边线信息，边界信息含有横纵轴坐标，意味着你可以指定每个点的横纵坐标，边线的数量也可以大于或者小于图像的高度，通常来说边线数量大于图像的高度，一般是搜线算法能找出回弯的情况
-//4：没有图像信息，仅包含三条边线信息，边线信息只包含横轴坐标，纵轴坐标由图像高度得到，意味着每个边界在一行中只会有一个点，这样的方式可以极大的降低传输的数据量
-#define INCLUDE_BOUNDARY_TYPE   0
-
-
+//串口宏定义
+#define UART_INDEX              (DEBUG_UART_INDEX   )                           // 默认 UART_0
+#define UART_BAUDRATE           (DEBUG_UART_BAUDRATE)                           // 默认 115200
+#define UART_TX_PIN             (DEBUG_UART_TX_PIN  )                           // 默认 UART0_TX_P00_1
+#define UART_RX_PIN             (DEBUG_UART_RX_PIN  )                           // 默认 UART0_RX_P00_0
+//wifi——spi告诉模块网络连接部分宏定义
 #define WIFI_SSID_TEST          "AutoRobot_201"
 #define WIFI_PASSWORD_TEST      "AuTo201#"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
 #define TCP_TARGET_IP           "192.168.1.216"             // 连接目标的 IP
 #define TCP_TARGET_PORT         "8086"                      // 连接目标的端口
 #define WIFI_LOCAL_PORT         "6666"                      // 本机的端口 0：随机  可设置范围2048-65535  默认 6666
-
-
-
-
-
-// 边界的点数量远大于图像高度，便于保存回弯的情况
-#define BOUNDARY_NUM            (MT9V03X_H * 3 / 2)
-
-// 只有X边界
-uint8 xy_x1_boundary[BOUNDARY_NUM], xy_x2_boundary[BOUNDARY_NUM], xy_x3_boundary[BOUNDARY_NUM];
-
-// 只有Y边界
-uint8 xy_y1_boundary[BOUNDARY_NUM], xy_y2_boundary[BOUNDARY_NUM], xy_y3_boundary[BOUNDARY_NUM];
-
-// X Y边界都是单独指定的
-uint8 x1_boundary[MT9V03X_H], x2_boundary[MT9V03X_H], x3_boundary[MT9V03X_H];
-uint8 y1_boundary[MT9V03X_W], y2_boundary[MT9V03X_W], y3_boundary[MT9V03X_W];
 
 // 图像备份数组，在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
 uint8 image_copy[MT9V03X_H][MT9V03X_W];
@@ -140,57 +57,60 @@ uint8_t best_threshold = 0;
 uint8_t last_threshold = 0;
 uint8_t is_threshold_stable = 0;
 uint8_t the_flag_of_camera_init = 1;
-
-uint32 send_data_test = 0;
-
-void my_ipc_callback(uint32 receive_data)
-{
-    ;        // 将接收到的数据打印到串口   
-}
+//串口发送变量
+uint8_t  send_data = 48;                                                            // 接收数据变量
 
 int main(void)
-{       
+{   
     clock_init(SYSTEM_CLOCK_250M); 	// 时钟配置及系统初始化<务必保留>
     debug_init(); 
-    //while(1);// 调试串口信息初始化
-    SCB_DisableDCache(); // 关闭DCashe
 
-    ipc_communicate_init(IPC_PORT_2, my_ipc_callback);  
-    // 初始化IPC模块 选择端口2 填写中断回调函数
     // 此处编写用户代码 例如外设初始化代码等
+    //串口0初始化
+    uart_init(UART_INDEX, UART_BAUDRATE, UART_TX_PIN, UART_RX_PIN);             // 初始化串口
+    uart_rx_interrupt(UART_INDEX, 1);                                           // 开启 UART_INDEX 的接收中断
+    //wifi——spi模块初始化
+    while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
+    //等待网络连接
+    if(1 != WIFI_SPI_AUTO_CONNECT)                                              // 如果没有开启自动连接 就需要手动连接目标 IP
+    {
+        while(wifi_spi_socket_connect(                                          // 向指定目标 IP 的端口建立 TCP 连接
+            "TCP",                                                              // 指定使用TCP方式通讯
+            TCP_TARGET_IP,                                                      // 指定远端的IP地址，填写上位机的IP地址
+            TCP_TARGET_PORT,                                                    // 指定远端的端口号，填写上位机的端口号，通常上位机默认是8080
+            WIFI_LOCAL_PORT))                                                   // 指定本机的端口号
+        {
+            ;
+        }
+    }
+    //摄像头初始化
+    mt9v03x_init();
+    // 逐飞助手初始化 数据传输使用高速WIFI SPI
+    seekfree_assistant_interface_init(SEEKFREE_ASSISTANT_WIFI_SPI);
+    // 发送总钻风图像信息(仅包含原始图像信息)
+    seekfree_assistant_camera_information_config(SEEKFREE_ASSISTANT_MT9V03X, image_copy[0], MT9V03X_W, MT9V03X_H);
     
-
     // 此处编写用户代码 例如外设初始化代码等
     while(true)
     {
-        // 此处编写需要循环执行的代码
+      // 此处编写需要循环执行的代码
+        uart_write_buffer(UART_INDEX, &send_data, 1);
 
-        if(send_data_test < 1145)
-          send_data_test++;
-        else
-          send_data_test = 0;
-                
-        ipc_send_data(send_data_test );               // 发送数据给核心M7_0
+      if(mt9v03x_finish_flag)
+      {
+          mt9v03x_finish_flag = 0;
 
-      
-        // 此处编写需要循环执行的代码
+          // 在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
+          memcpy(image_copy[0], mt9v03x_image[0], MT9V03X_IMAGE_SIZE);
+          //GARY_TO_BINARY((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 66);
+          //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &try_block);
+          //Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 240, 190, 80, 60, 40, 40);
+          //Draw_Max_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+          //Draw_Merge_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+          // 发送图像
+          seekfree_assistant_camera_send();
+      }
     }
 }
 
 // **************************** 代码区域 ****************************
-
-
-// *************************** 例程常见问题说明 ***************************
-// 问题1：串口没有数据
-//      查看逐飞助手上位机打开的是否是正确的串口 检查打开的 COM 口是否对应的是 Debug UART(USB 转 TTL 或者 调试下载器) 的 COM 口
-//
-// 问题2：串口数据乱码
-//      查看逐飞助手上位机使用的波特率是否是 zf_common_debug.h 中 DEBUG_UART_BAUDRATE 宏定义的一致 默认是 115200
-//
-// 问题3：上位机收不到数据或者一直显示Connect TCP Servers error, try again.
-//      检查默认使用的IP 地址（zf_device_wifi_spi.h 中 WIFI_SPI_TARGET_IP）是否与上位机的本机地址一致
-//      检查默认使用的通信端口（zf_device_wifi_spi.h 中 WIFI_SPI_TARGET_PORT）是否与上位机的端口号一致
-//
-// 问题4：一直显示 connect wifi failed
-//      将 WIFI_SSID_TEST 宏定义修改为你测试使用的 Wi-Fi 名称
-//      将 WIFI_PASSWORD_TEST 宏定义修改为你测试使用的 Wi-Fi 密码

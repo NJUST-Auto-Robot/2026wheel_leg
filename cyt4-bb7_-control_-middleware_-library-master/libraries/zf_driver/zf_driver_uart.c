@@ -78,6 +78,38 @@ void (*uart_isr_func[6])() = {uart0_isr, uart1_isr, uart2_isr, uart3_isr,
                               uart4_isr, uart5_isr};
 cy_stc_scb_uart_context_t uart_context[6] = {0};
 volatile stc_SCB_t *scb_module[6] = {SCB0, SCB5, SCB4, SCB3, SCB2, SCB6};
+
+static uint8 uart_data_refresh[7] = {0};
+static uint8 uart_data_buffer[7] = {0};
+//-------------------------------------------------------------------------------------------------------------------
+// 函数简介       串口中断预处理 
+// 参数说明       uart_n         串口号
+// 返回参数       uint8          0：发送中断    1：接收中断  
+// 使用示例       uart_isr_mask(UART_0);                  
+// 备注信息       内部函数 用户无需关心
+//-------------------------------------------------------------------------------------------------------------------
+uint8 uart_isr_mask(uart_index_enum uart_n)
+{
+    uint8 isr_type = 1;                                                                     // 中断类型  0：发送中断   1：接收中断  
+  
+    if(Cy_SCB_GetRxInterruptMask(scb_module[uart_n]) & CY_SCB_UART_RX_NOT_EMPTY)            // 串口接收中断
+    {
+        if(Cy_SCB_GetNumInRxFifo(scb_module[uart_n]))
+        {
+            uart_data_buffer[uart_n]  = (uint8)Cy_SCB_ReadRxFifo(scb_module[uart_n]);
+            uart_data_refresh[uart_n] = 1;
+        }
+        Cy_SCB_ClearRxInterrupt(scb_module[uart_n], CY_SCB_UART_RX_NOT_EMPTY);              // 清除接收中断标志位
+    }
+    else if(Cy_SCB_GetTxInterruptMask(scb_module[uart_n]) & CY_SCB_UART_TX_DONE)            // 串口0发送中断
+    {           
+        Cy_SCB_ClearTxInterrupt(scb_module[uart_n], CY_SCB_UART_TX_DONE);                   // 清除接收中断标志位
+        
+        isr_type = 0;
+    }
+    
+    return isr_type;
+}
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介       获取串口配置信息
 // 参数说明       uart_n          串口模块号 参照 zf_driver_uart.h 内
@@ -358,13 +390,17 @@ uint8 uart_read_self_quit(uart_index_enum uart_n, uint8_t *dat,
 uint8 uart_query_byte(uart_index_enum uart_n, uint8 *dat) {
   uint8 return_data = 0;
 
-  if (Cy_SCB_GetNumInRxFifo(scb_module[uart_n])) {
-    *dat = (uint8_t)Cy_SCB_ReadRxFifo(scb_module[uart_n]);
-    return_data = 1;
-  } else {
-    return_data = 0;
-  }
-  return return_data;
+    if(uart_data_refresh[uart_n])
+    {
+        *dat = uart_data_buffer[uart_n];
+        uart_data_refresh[uart_n] = 0;
+        return_data = 1;
+    }
+    else
+    {
+        return_data = 0;
+    }
+    return return_data;
 }
 
 //-------------------------------------------------------------------------------------------------------------------
@@ -582,7 +618,7 @@ void uart_init(uart_index_enum uart_n, uint32 baud, uart_tx_pin_enum tx_pin,
       (divSetting_fp5 & 0x0000001Ful));
   Cy_SysClk_PeriphEnableDivider(
       Cy_SysClk_GetClockGroup(uart_pin_config.uart_pclk),
-      CY_SYSCLK_DIV_24_5_BIT, 0ul);
+      CY_SYSCLK_DIV_24_5_BIT, (uint8)uart_n);
 
   cy_stc_sysint_irq_t uart_irq_cfg;
   uart_irq_cfg.sysIntSrc = uart_pin_config.uart_irqn;
