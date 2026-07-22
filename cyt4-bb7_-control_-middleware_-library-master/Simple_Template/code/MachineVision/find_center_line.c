@@ -2,7 +2,8 @@
 
 Line_Struct line;
 
-void find_center_lin(uint8_t* image, uint8_t width, uint8_t height, Line_Struct*Line, uint8_t max_threshold, uint8_t min_threshold)
+
+void find_center_line(uint8_t* image, uint8_t width, uint8_t height, Line_Struct*Line, uint8_t max_threshold, uint8_t min_threshold)
 {
   //从下往上自79至49逐行、由中间向两边逐点扫描矩形侧边找中线
   for(int16_t y = 79,  i = 0; y >= 49; y--, i++)
@@ -48,4 +49,15 @@ void find_center_lin(uint8_t* image, uint8_t width, uint8_t height, Line_Struct*
       Line->top_point_y = 0;
     }
   }
+}
+
+void draw_center_line(uint8_t* image, uint8_t width, uint8_t height, Line_Struct*Line)
+{
+  for(int16_t y = 79,  i = 0; y >= 49; y--, i++)
+  {
+    image[y * width + Line->center_line_right_x[i]] = 255;
+    image[y * width + Line->center_line_left_x[i]] = 255;
+    image[y * width + Line->center_line_center_x[i]] = 255;
+  }
+  
 }

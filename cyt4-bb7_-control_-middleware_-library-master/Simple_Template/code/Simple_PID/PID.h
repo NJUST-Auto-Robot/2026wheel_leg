@@ -21,7 +21,7 @@ typedef struct
 	float out;								
 }PID;
 
-
+extern PID center_PID;
 
 void PID_Init(PID*pid);							    						//参数初始化
 void PID_Set(PID *pid, float p, float i, float d);			//设置PID参数

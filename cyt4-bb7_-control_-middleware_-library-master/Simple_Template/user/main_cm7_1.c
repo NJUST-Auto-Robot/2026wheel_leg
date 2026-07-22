@@ -48,8 +48,8 @@ float m7_1_data[DATA_LENGTH] = {0, 0.1, 0.2, 0.3, 0.4};                        /
 //wifi——spi告诉模块网络连接部分宏定义
 #define WIFI_SSID_TEST          "AutoRobot_201"
 #define WIFI_PASSWORD_TEST      "AuTo201#"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
-#define TCP_TARGET_IP           "192.168.1.118"             // 连接目标的 IP
-#define TCP_TARGET_PORT         "8086"                      // 连接目标的端口
+#define TCP_TARGET_IP           "192.168.1.216"             // 连接目标的 IP
+#define TCP_TARGET_PORT         "8086"                       // 连接目标的端口
 #define WIFI_LOCAL_PORT         "6666"                      // 本机的端口 0：随机  可设置范围2048-65535  默认 6666
 
 // 图像备份数组，在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
@@ -59,19 +59,19 @@ uint8_t best_threshold = 0;
 uint8_t last_threshold = 0;
 uint8_t is_threshold_stable = 0;
 uint8_t the_flag_of_camera_init = 1;
-//串口发送变量
+uint8_t rect_max_threshold = 150;
+uint8_t rect_min_threshold = 100;
+uint8_t center_x = 93;
+uint8_t task_flag = 1;
 
-uint8_t send_data[1] = {48};                                                            // 接收数据变量                                                        // 接收数据变量
-void my_ipc_callback(uint32 receive_data)
-{
-    
-}
+
 int main(void)
 {   
     clock_init(SYSTEM_CLOCK_250M); 	// 时钟配置及系统初始化<务必保留>
     debug_info_init(); 
-
-
+    //简单PID初始化
+    PID_Init(&center_PID);
+    PID_Set(&center_PID, 1.14, 0.0, 0.0);
     //wifi——spi模块初始化
     while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
     //等待网络连接
@@ -98,10 +98,6 @@ int main(void)
     while(true)
     {
       // 此处编写需要循环执行的代码
-      //system_delay_ms(1000);   
-
-      
-       // M7_1核心有Dcache 当数据有变化时应该更新Dcache的内容 否则数据无法同步到RAM(其他核心访问的RAM地址也就无法读取到数据)
       
       
       if(mt9v03x_finish_flag)
@@ -110,18 +106,30 @@ int main(void)
 
           // 在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
           memcpy(image_copy[0], mt9v03x_image[0], MT9V03X_IMAGE_SIZE);
+          
+          //测试图传是否正常
           //GARY_TO_BINARY((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 66);
           //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &try_block);
+          
+          
+          //用于科目一找障碍
           //Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 240, 190, 80, 60, 40, 40);
           //Draw_Max_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
           //Draw_Merge_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+          
+          //用于科目二行驶至矩形框内合适位置
+          //find_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line, rect_max_threshold, rect_min_threshold);
+          //PID_Control(&center_PID, center_x, line.center_line_center_x[20]);
+          //draw_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line);
           // 发送图像
           seekfree_assistant_camera_send();
-          for(int i = 0; i < DATA_LENGTH; i ++)                                   // M7_1数据自增 步进值0.1
-          {
-            m7_1_data[i] += 0.1;
-          }
-          SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
+          
+          //用于实现双核通信——主要是1核发、0核收
+          //for(int i = 0; i < DATA_LENGTH; i ++)                                   // M7_1数据自增 步进值0.1
+          //{
+            //m7_1_data[i] += 0.1;
+          //}
+          //SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
       }
      
     }

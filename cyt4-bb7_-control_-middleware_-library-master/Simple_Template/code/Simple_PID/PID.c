@@ -1,5 +1,7 @@
 #include "Simple_PID/PID.h"
 
+PID center_PID;
+
 void PID_Init(PID *pid)
 {  	
 	pid->target = 0;				

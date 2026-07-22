@@ -13,6 +13,7 @@ typedef struct
 
 extern Line_Struct line;
 
-void find_center_lin(uint8_t* image, uint8_t width, uint8_t height, Line_Struct*Line, uint8_t max_threshold, uint8_t min_threshold);
+void find_center_line(uint8_t* image, uint8_t width, uint8_t height, Line_Struct*Line, uint8_t max_threshold, uint8_t min_threshold);
+void draw_center_line(uint8_t* image, uint8_t width, uint8_t height, Line_Struct*Line);
 
 #endif 
