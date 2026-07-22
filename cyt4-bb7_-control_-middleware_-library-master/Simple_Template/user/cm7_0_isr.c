@@ -128,17 +128,19 @@ void pit0_ch0_isr() {
     debug_print_f = true;
     f = 0;
   }
-  handleWhenIdle(0); // debug串口空闲时，进行回调处理 
-  handleWhenIdle(1); // 串口1空闲时，进行回调处理 
-  handleWhenIdle(2); // 串口2空闲时，进行回调处理 
-  handleWhenIdle(3); // 串口3空闲时，进行回调处理 
-  handleWhenIdle(4); // 串口4空闲时，进行回调处理 
-  handleWhenIdle(5); // 串口5空闲时，进行回调处理
 }
 
 void pit0_ch1_isr() {   
   pit_isr_flag_clear(PIT_CH1); 
-  imu660rb.imu_data_ready = true; // 定时器中断触发，重置数据就绪标志
+  imu_read_data(&imu660rb);
+  if(imu660rb.imu_init_finish == true)       
+  {
+     if(imu660rb.imu_data_true >= 0) {
+         imu_data_check(&imu660rb);        // 检查数据有效性
+     }  
+     if(imu660rb.imu_data_true == -1) {
+      }
+   } 
 }
 
 void pit0_ch2_isr() { pit_isr_flag_clear(PIT_CH2); }
