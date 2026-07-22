@@ -1145,6 +1145,36 @@
         <group>
             <name>Module</name>
             <group>
+                <name>MachineVision</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.h</name>
+                </file>
+            </group>
+            <group>
+                <name>Simple_PID</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Simple_PID\PID.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Simple_PID\PID.h</name>
+                </file>
+            </group>
+            <group>
                 <name>SoundProcess</name>
             </group>
         </group>
@@ -1170,15 +1200,6 @@
             <name>Utility</name>
             <group>
                 <name>UpperMonitor</name>
-            </group>
-            <group>
-                <name>VOFAplus</name>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Utility\VOFAplus\VOFAplus.hpp</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\code\Utility\VOFAplus\VOFAplus_M71.cpp</name>
-                </file>
             </group>
         </group>
     </group>
@@ -2085,6 +2106,12 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_mpu6050.h</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_mt9v03x.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_mt9v03x.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\..\..\libraries\zf_device\zf_device_oled.c</name>

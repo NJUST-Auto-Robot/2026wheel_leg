@@ -268,7 +268,7 @@ void uart3_isr(void) {
 void uart4_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_4)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口4接收中断
     
-    uart4_callback(); 
+    //uart4_callback(); 
 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4), CY_SCB_UART_RX_NOT_EMPTY);
@@ -282,7 +282,7 @@ void uart4_isr(void) {
 void uart5_isr(void) {
   if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_5)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口5接收中断
     
-    CRSF_callback(); 
+    //CRSF_callback(); 
     // 清除接收中断标志位
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_5), CY_SCB_UART_RX_NOT_EMPTY);
   } 

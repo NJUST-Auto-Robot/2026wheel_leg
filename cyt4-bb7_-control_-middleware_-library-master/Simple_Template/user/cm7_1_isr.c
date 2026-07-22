@@ -231,7 +231,7 @@ void uart4_isr(void) {
   {
     Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4),
                             CY_SCB_UART_RX_NOT_EMPTY); // 清除接收中断标志位
-    uart4_callback(); // 直接在中断回调中完成 CRSF 数据处理
+    //uart4_callback(); // 直接在中断回调中完成 CRSF 数据处理
 
   } else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_4)) &
              CY_SCB_UART_TX_DONE) // 串口4发送中断
@@ -239,6 +239,10 @@ void uart4_isr(void) {
     Cy_SCB_ClearTxInterrupt(get_scb_module(UART_4),
                             CY_SCB_UART_TX_DONE); // 清除接收中断标志位
   }
+}
+
+void uart5_isr(void) {
+;
 }
 // **************************** 串口中断函数 ****************************
 /**
