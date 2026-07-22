@@ -44,7 +44,12 @@
 #include "Controller/VMC.h"
 #include "Controller/CRSF.h"
 #include "Controller/CRC8.h"
-uint8_t debug_rx_buff[1] = {0};
+   
+   
+#define DATA_LENGTH               (5)                                           // 数组数据长度
+
+#pragma location = 0x28001000                                                   // 将下面这个数组定义到指定的RAM地址，#pragma需要手动分配地址，因此需要计算数据长度后再分配
+__no_init float m7_1_data[DATA_LENGTH];                                        // 定义M7_1演示数据数组 浮点数类型  由于该数组已经在M7_1核心赋值过初值，因此此处不再初
 
 // 外设宏定义
 #define TEST_LED (P19_0)
@@ -147,11 +152,15 @@ static void BodyEkfUpdate(float position_measure, float velocity_measure, float 
   #define REMAP_VALUE(val, in_min, in_max, out_min, out_max) \
       ((float)(val - in_min) * (float)(out_max - out_min) / (float)(in_max - in_min) + (float)out_min)
 
+
+        
 int main(void) {
   clock_init(SYSTEM_CLOCK_250M);  // 时钟配置及系统初始化<务必保留>
   debug_init();                   // 调试串口信息初始化
   uart_rx_interrupt(DEBUG_UART_INDEX, 1);                                           // 开启 UART_INDEX 的接收中断
-  usrUartInit();
+
+   
+  //usrUartInit();
 
   // 设置周期中断1ms，用于串口空闲中断判断
   pit_us_init(PIT_CH0, 1000);
@@ -160,13 +169,10 @@ int main(void) {
   gpio_init(TEST_LED, GPO, GPIO_LOW, GPO_PUSH_PULL);
 
   // 初始化IMU660RB
-  //imu_init(&imu660rb);
+  imu_init(&imu660rb);
 
   // 计算LQR增益矩阵
   LQR_ComputeK();                            
-
-  // 速度 PID（线速度闭环）参数（宏定义）
-  MotorPID_Init(MOTOR_PID_KP, MOTOR_PID_KI, MOTOR_PID_KD, MOTOR_PID_I_TERM_MAX, MOTOR_PID_OUT_MAX);
 
   Crc8_init(0xD5);
   
@@ -175,8 +181,9 @@ int main(void) {
   //osKernelStart();                // 开启FreeRTOS内核调 
   
   while (true) {
-    /*假如FreeRTOS调度成功，那么不会运行这里面的代码*/
     
+    SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));      // M7_0核心有Dcache 当需要读取RAM地址数据时应该更新Dcache的内容 否则可能只是读取到Dcache而不是读取的RAM
+
     // 在这里可以添加平衡控制的代码，例如使用LQR算法计算控制输入，并通过PWM输出控制电机
     float x_l_ref[] = {0.0f, -target_linear_speed_l, 3.65f*3.1715f/180.0f, 0.0f}; // 目标状态向量
     float x_r_ref[] = {0.0f, -target_linear_speed_r, 3.65f*3.1715f/180.0f, 0.0f}; // 目标状态向量

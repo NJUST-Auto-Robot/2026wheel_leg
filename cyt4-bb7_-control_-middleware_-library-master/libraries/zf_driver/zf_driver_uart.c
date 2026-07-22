@@ -286,6 +286,7 @@ volatile stc_SCB_t *get_scb_module(uart_index_enum uart_n) {
     zf_assert(0);
     break;
   }
+  
   return temp_module;
 }
 

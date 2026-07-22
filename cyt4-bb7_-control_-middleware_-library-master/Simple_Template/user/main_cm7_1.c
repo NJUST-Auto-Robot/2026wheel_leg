@@ -39,11 +39,16 @@
 #include "MachineVision/find_center_line.h"
 #include "Simple_PID/PID.h"
 
+#define DATA_LENGTH               (5)                                           // 数组数据长度
+
+#pragma location = 0x28001000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
+                                                                                // 此处为0x28001014的原因是前面放了一个M0的数组
+float m7_1_data[DATA_LENGTH] = {0, 0.1, 0.2, 0.3, 0.4};                        // 定义 M7_1 演示数据数组 浮点数类型
 
 //wifi——spi告诉模块网络连接部分宏定义
 #define WIFI_SSID_TEST          "AutoRobot_201"
 #define WIFI_PASSWORD_TEST      "AuTo201#"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
-#define TCP_TARGET_IP           "192.168.1.216"             // 连接目标的 IP
+#define TCP_TARGET_IP           "192.168.1.118"             // 连接目标的 IP
 #define TCP_TARGET_PORT         "8086"                      // 连接目标的端口
 #define WIFI_LOCAL_PORT         "6666"                      // 本机的端口 0：随机  可设置范围2048-65535  默认 6666
 
@@ -57,15 +62,16 @@ uint8_t the_flag_of_camera_init = 1;
 //串口发送变量
 
 uint8_t send_data[1] = {48};                                                            // 接收数据变量                                                        // 接收数据变量
-
+void my_ipc_callback(uint32 receive_data)
+{
+    
+}
 int main(void)
 {   
     clock_init(SYSTEM_CLOCK_250M); 	// 时钟配置及系统初始化<务必保留>
     debug_info_init(); 
 
-    // 此处编写用户代码 例如外设初始化代码等
-    //uart_tx_interrupt(UART_INDEX, 1);                                           // 开启 发送中断
-    
+
     //wifi——spi模块初始化
     while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
     //等待网络连接
@@ -92,10 +98,12 @@ int main(void)
     while(true)
     {
       // 此处编写需要循环执行的代码
+      //system_delay_ms(1000);   
 
-        uart_write_buffer(DEBUG_UART_INDEX, send_data, 1);
-
-
+      
+       // M7_1核心有Dcache 当数据有变化时应该更新Dcache的内容 否则数据无法同步到RAM(其他核心访问的RAM地址也就无法读取到数据)
+      
+      
       if(mt9v03x_finish_flag)
       {
           mt9v03x_finish_flag = 0;
@@ -109,7 +117,13 @@ int main(void)
           //Draw_Merge_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
           // 发送图像
           seekfree_assistant_camera_send();
+          for(int i = 0; i < DATA_LENGTH; i ++)                                   // M7_1数据自增 步进值0.1
+          {
+            m7_1_data[i] += 0.1;
+          }
+          SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
       }
+     
     }
 }
 

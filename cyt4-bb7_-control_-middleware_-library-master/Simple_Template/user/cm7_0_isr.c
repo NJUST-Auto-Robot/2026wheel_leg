@@ -49,6 +49,8 @@
 #include "System/usr_uart.hpp"
 #include "usr_system.hpp"
 #include "Module/IMU660RB/imu_data.h"
+#include "Controller/CRSF.h"
+#include "Controller/LQR.h"
 
 
 uint8_t get_data = 0;                                                            
@@ -219,21 +221,18 @@ void gpio_23_exti_isr() {}
 // 串口0默认作为调试串口
 void uart0_isr (void)
 {
-    if(uart_isr_mask(UART_0))            // 串口0接收中断
-    {
-        
-#if DEBUG_UART_USE_INTERRUPT             // 如果开启 debug 串口中断
-        //debug_interrupr_handler();       // 调用 debug 串口接收处理函数 数据会被 debug 环形缓冲区读取
-#endif                                   // 如果修改了 DEBUG_UART_INDEX 那这段代码需要放到对应的串口中断去
-      
-        uart_rx_interrupt_handler();
-    }
-    else                                 // 串口0发送中断
-    {           
-        
-        
-        
-    }
+    if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_0)) & CY_SCB_UART_RX_NOT_EMPTY){ //串口1接收中断    
+    
+    uart_rx_interrupt_handler(); // 读取一个字节进入 fifo
+
+    // 清除接收中断标志位
+    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_0), CY_SCB_UART_RX_NOT_EMPTY);
+
+  } 
+  else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_0)) & CY_SCB_UART_TX_DONE){ //串口1发送中断 
+    // 清除接收中断标志位
+    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_0), CY_SCB_UART_TX_DONE);
+  }
 }
 
 void uart1_isr(void) {
