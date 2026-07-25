@@ -107,7 +107,7 @@
 // #include "zf_device_key.h"
 //#include "zf_device_mpu6050.h"
 // #include "zf_device_oled.h"
-// #include "zf_device_mt9v03x.h"
+ #include "zf_device_mt9v03x.h"
 // #include "zf_device_ov7725.h"
 // #include "zf_device_scc8660.h"
 // #include "zf_device_tft180.h"
@@ -115,7 +115,7 @@
 // #include "zf_device_type.h"
 // #include "zf_device_uart_receiver.h"
 // #include "zf_device_virtual_oscilloscope.h"
-// #include "zf_device_wifi_spi.h"
+ #include "zf_device_wifi_spi.h"
 // #include "zf_device_wifi_uart.h"
 // #include "zf_device_wireless_uart.h"
 //===================================================外接设备驱动层===================================================

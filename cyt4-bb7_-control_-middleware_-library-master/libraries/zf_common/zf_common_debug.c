@@ -437,6 +437,6 @@ void debug_init(void) {
 #if DEBUG_UART_USE_INTERRUPT // 条件编译 只有在启用串口中断才编译
   fifo_init(&debug_uart_fifo, FIFO_DATA_8BIT, debug_uart_buffer,
             DEBUG_RING_BUFFER_LEN);
-  //uart_rx_interrupt(DEBUG_UART_INDEX, 1); // 使能对应串口接收中断
+  uart_rx_interrupt(DEBUG_UART_INDEX, 1); // 使能对应串口接收中断
 #endif
 }

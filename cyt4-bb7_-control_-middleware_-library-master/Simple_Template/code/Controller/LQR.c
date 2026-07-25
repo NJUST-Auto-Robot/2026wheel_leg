@@ -175,14 +175,15 @@ void uart4_callback(void) {
 void sendSpeedToMotor(float left_sp,float right_sp)
 {
     char buf[64];
-    int left_duty = (int)(left_sp * 1040.0f); // 将速度转换为占空比百分比
-    int right_duty = (int)(right_sp * 1040.0f);
+    int left_duty = (int)(left_sp * 1340.0f); // 将速度转换为占空比百分比
+    int right_duty = (int)(right_sp * 1340.0f);
     if (left_duty > 8000) left_duty = 8000;
     if (left_duty < -8000) left_duty = -8000;
     if (right_duty > 8000) right_duty = 8000;
     if (right_duty < -8000) right_duty = -8000;
      // 1. 格式化字符串，假设电机驱动器接受 "SET-DUTY,left_duty,right_duty" 格式的命令
     int len = snprintf(buf, sizeof(buf), "SET-DUTY,%d,%d\r\n", left_duty, right_duty);
+    //int len = snprintf(buf, sizeof(buf), "SET-DUTY,%d,%d\r\n", 0, 0);
     // 2. 通过UART4发送
     UartSendArray[4]((uint8_t*)buf, (uint16_t)len);
 }

@@ -283,28 +283,28 @@ void Find_Block_Pro_Max(uint8_t* image, uint8_t width, uint8_t height, BLOCK* Bl
   //将找到的所有色块合并成大色块
   Block->cx[0] = 0;
   Block->cy[0] = 0;
-  Block->max_x[0] = Block->max_x[Block->block_num];
-  Block->max_y[0] = Block->max_y[Block->block_num];
-  Block->min_x[0] = Block->min_x[Block->block_num];
-  Block->min_y[0] = Block->min_y[Block->block_num];
+  Block->max_x[0] = roi_x;
+  Block->max_y[0] = roi_y;
+  Block->min_x[0] = roi_x + roi_w;
+  Block->min_y[0] = roi_y + roi_h;
   
   for(uint8_t num = 1; num <= Block->block_num; num++)
   {
-      if(Block->max_x[0] < Block->max_x[num])
+      if(Block->max_x[0] < Block->max_x[num] && Block->max_x[num] >= roi_x)
         Block->max_x[0] = Block->max_x[num];
       
-      if(Block->max_y[0] < Block->max_y[num])
+      if(Block->max_y[0] < Block->max_y[num] && Block->max_y[num] >= roi_y)
         Block->max_y[0] = Block->max_y[num];
       
-      if(Block->min_x[0] > Block->min_x[num])
+      if(Block->min_x[0] > Block->min_x[num] && Block->min_x[num] >= roi_x)
         Block->min_x[0] = Block->min_x[num];
       
-      if(Block->min_y[0] > Block->min_y[num])
+      if(Block->min_y[0] > Block->min_y[num] && Block->min_y[num] >= roi_y)
         Block->min_y[0] = Block->min_y[num];
       
-      Block->cx[0] += Block->cx[num] / Block->block_num;
-      Block->cy[0] += Block->cy[num] / Block->block_num;
   }
+      Block->cx[0] = (Block->max_x[0] + Block->min_x[0]) / 2;
+      Block->cy[0] = (Block->max_y[0] + Block->min_y[0]) / 2;
 }
 //画出Block结构体中全部色块边框
 void Draw_Block(uint8_t* image, uint8_t width, uint8_t height, BLOCK* Block)

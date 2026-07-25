@@ -374,6 +374,9 @@
                     <state>$PROJ_DIR$\..\..\..\libraries1\zf_components</state>
                     <state>$PROJ_DIR$\..\..\user</state>
                     <state>$PROJ_DIR$\..\..\code</state>
+                    <state>$PROJ_DIR$\..\..\FreeRTOS\Source\CMSIS_RTOS_V2</state>
+                    <state>$PROJ_DIR$\..\..\FreeRTOS\Source\include</state>
+                    <state>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1116,25 +1119,43 @@
     <group>
         <name>code</name>
         <group>
-            <name>MachineVision</name>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.h</name>
-            </file>
+            <name>Algorithm</name>
+            <group>
+                <name>DSP</name>
+            </group>
+            <group>
+                <name>Filters</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Filters\filters.cpp</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\Algorithm\Filters\filters.hpp</name>
+                </file>
+            </group>
+        </group>
+        <group>
+            <name>Module</name>
+            <group>
+                <name>MachineVision</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\auto_get_best_threshold.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_block.h</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\code\MachineVision\find_center_line.h</name>
+                </file>
+            </group>
         </group>
         <group>
             <name>Simple_PID</name>
@@ -1163,6 +1184,51 @@
         <file>
             <name>$PROJ_DIR$\..\..\..\libraries\doc\version.txt</name>
         </file>
+    </group>
+    <group>
+        <name>FreeRTOS</name>
+        <group>
+            <name>Core</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\CMSIS_RTOS_V2\cmsis_os2.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\croutine.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\event_groups.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\list.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\queue.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\stream_buffer.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\tasks.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\timers.c</name>
+            </file>
+        </group>
+        <group>
+            <name>Portable</name>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\MemMang\heap_4.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1\port.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1\portasm.s</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\FreeRTOS\Source\portable\IAR\ARM_CM7\r0p1\portmacro.h</name>
+            </file>
+        </group>
     </group>
     <group>
         <name>sdk</name>
@@ -2028,12 +2094,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_pmw3901.h</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_tsl1401.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_tsl1401.h</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\..\..\libraries1\zf_device\zf_device_type.c</name>

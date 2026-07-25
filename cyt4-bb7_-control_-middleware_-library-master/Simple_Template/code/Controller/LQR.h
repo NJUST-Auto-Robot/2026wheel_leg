@@ -59,6 +59,7 @@ extern float right_Wheel_Speed; // 右电机速度
 void LQR_GetMatrices(float A[4][4], float B[4], float Q[4][4], float *R_out);
 void LQR_ComputeK();
 void sendSpeedToMotor(float left_speed, float right_speed);
+void uart4_callback(void);
 #ifdef __cplusplus
 }
 #endif

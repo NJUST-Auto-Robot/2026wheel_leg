@@ -4,8 +4,8 @@
 
 #include "zf_common_typedef.h"
 
-#define MAX_INTEGRAL_ERR 100
-#define MAX_OUTPUT       100
+#define MAX_INTEGRAL_ERR 60
+#define MAX_OUTPUT       0.2
 
 typedef struct
 {
@@ -21,7 +21,10 @@ typedef struct
 	float out;								
 }PID;
 
-extern PID center_PID;
+extern PID center_PID_1;
+extern PID center_PID_2;
+extern PID center_PID_3;
+extern PID center_PID_4;
 
 void PID_Init(PID*pid);							    						//参数初始化
 void PID_Set(PID *pid, float p, float i, float d);			//设置PID参数

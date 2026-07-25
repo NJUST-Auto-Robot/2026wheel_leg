@@ -1,6 +1,9 @@
 #include "Simple_PID/PID.h"
 
-PID center_PID;
+PID center_PID_1;
+PID center_PID_2;
+PID center_PID_3;
+PID center_PID_4;
 
 void PID_Init(PID *pid)
 {  	

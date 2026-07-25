@@ -87,7 +87,7 @@ void GARY_TO_BINARY(uint8_t* image, uint8_t width, uint8_t height, uint8_t thres
   }
 }
 
-void GARY_TO_BINARY_Pro(uint8_t* image, uint8_t width, uint8_t height, uint8_t min_threshold, uint8_t max_threshold)
+void GARY_TO_BINARY_Pro(uint8_t* image, uint8_t width, uint8_t height, uint8_t max_threshold, uint8_t min_threshold)
 {
   for(uint8_t y = 0; y < height; y++)
   {

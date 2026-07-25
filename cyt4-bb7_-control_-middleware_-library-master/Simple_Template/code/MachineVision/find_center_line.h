@@ -5,9 +5,9 @@
 
 typedef struct
 {
-  int16_t center_line_right_x[80];
-  int16_t center_line_left_x[80];
-  int16_t center_line_center_x[80];
+  int16_t center_line_right_x[40];
+  int16_t center_line_left_x[40];
+  int16_t center_line_center_x[40];
   int16_t top_point_y;
 }Line_Struct;
 

@@ -43,13 +43,14 @@
 
 #pragma location = 0x28001000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
                                                                                 // 此处为0x28001014的原因是前面放了一个M0的数组
-float m7_1_data[DATA_LENGTH] = {0, 0.1, 0.2, 0.3, 0.4};                        // 定义 M7_1 演示数据数组 浮点数类型
+float m7_1_data[DATA_LENGTH] = {0.2, 0.2, 0.2, 0.3, 0.4};                        // 定义 M7_1 演示数据数组 浮点数类型
+
 
 //wifi——spi告诉模块网络连接部分宏定义
 #define WIFI_SSID_TEST          "AutoRobot_201"
 #define WIFI_PASSWORD_TEST      "AuTo201#"                  // 如果需要连接的WIFI 没有密码则需要将 这里 替换为 NULL
 #define TCP_TARGET_IP           "192.168.1.216"             // 连接目标的 IP
-#define TCP_TARGET_PORT         "8086"                       // 连接目标的端口
+#define TCP_TARGET_PORT         "8086"                      // 连接目标的端口
 #define WIFI_LOCAL_PORT         "6666"                      // 本机的端口 0：随机  可设置范围2048-65535  默认 6666
 
 // 图像备份数组，在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
@@ -59,19 +60,42 @@ uint8_t best_threshold = 0;
 uint8_t last_threshold = 0;
 uint8_t is_threshold_stable = 0;
 uint8_t the_flag_of_camera_init = 1;
-uint8_t rect_max_threshold = 150;
-uint8_t rect_min_threshold = 100;
+uint8_t rect_max_threshold = 160;
+uint8_t rect_min_threshold = 120;
 uint8_t center_x = 93;
 uint8_t task_flag = 1;
 
+float line_speed_left = 0;
+float line_speed_right = 0;
+
+float l_speed_l_1 = 0;
+float l_speed_l_2 = 0;
+float l_speed_l_3 = 0;
+float l_speed_l_4 = 0;
+
+float l_speed_r_1 = 0;
+float l_speed_r_2 = 0;
+float l_speed_r_3 = 0;
+float l_speed_r_4 = 0;
 
 int main(void)
 {   
     clock_init(SYSTEM_CLOCK_250M); 	// 时钟配置及系统初始化<务必保留>
     debug_info_init(); 
-    //简单PID初始化
-    PID_Init(&center_PID);
-    PID_Set(&center_PID, 1.14, 0.0, 0.0);
+
+    // 此处编写用户代码 例如外设初始化代码等
+    //uart_tx_interrupt(UART_INDEX, 1);                                           // 开启 发送中断
+    //uart_rx_interrupt(UART_INDEX, 1);                                           // 开启 UART_INDEX 的接收中断
+    PID_Init(&center_PID_1);
+    PID_Init(&center_PID_2);
+    PID_Init(&center_PID_3);
+    PID_Init(&center_PID_4);
+    
+    PID_Set(&center_PID_1, 0.14, 0.0, 0.0);
+    PID_Set(&center_PID_2, 0.14, 0.0, 0.0);
+    PID_Set(&center_PID_3, 0.14, 0.0, 0.0);
+    PID_Set(&center_PID_4, 0.14, 0.0, 0.0);
+    
     //wifi——spi模块初始化
     while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
     //等待网络连接
@@ -98,40 +122,48 @@ int main(void)
     while(true)
     {
       // 此处编写需要循环执行的代码
-      
-      
+
+        //uart_write_buffer(UART_INDEX, &send_data, 1);
+
+
       if(mt9v03x_finish_flag)
-      {
+     {
           mt9v03x_finish_flag = 0;
 
           // 在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
           memcpy(image_copy[0], mt9v03x_image[0], MT9V03X_IMAGE_SIZE);
-          
           //测试图传是否正常
           //GARY_TO_BINARY((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 66);
           //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &try_block);
           
           
           //用于科目一找障碍
-          //Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 240, 190, 80, 60, 40, 40);
+          //Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 170, 150, 70, 40, 48, 40);
+          //GARY_TO_BINARY_Pro((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 170, 150);
+          //image_copy[block.cy[0]][block.cx[0]] = 0;
           //Draw_Max_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
           //Draw_Merge_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+          //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
           
           //用于科目二行驶至矩形框内合适位置
-          //find_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line, rect_max_threshold, rect_min_threshold);
-          //PID_Control(&center_PID, center_x, line.center_line_center_x[20]);
-          //draw_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line);
+          find_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line, rect_max_threshold, rect_min_threshold);
+          l_speed_l_1 = PID_Control(&center_PID_1, center_x, line.center_line_center_x[0]);
+          l_speed_l_2 = PID_Control(&center_PID_2, center_x, line.center_line_center_x[10]);
+          l_speed_l_3 = PID_Control(&center_PID_3, center_x, line.center_line_center_x[20]);
+          l_speed_l_4 = PID_Control(&center_PID_4, center_x, line.center_line_center_x[30]);
+          l_speed_r_1 = -l_speed_l_1;
+          l_speed_r_2 = -l_speed_l_2;
+          l_speed_r_3 = -l_speed_l_3;
+          l_speed_r_4 = -l_speed_l_4;
+          line_speed_left = 0.4 + (l_speed_l_1 + l_speed_l_2 + l_speed_l_3 + l_speed_l_4) / 4;
+          line_speed_right = 0.4 + (l_speed_r_1 + l_speed_r_2 + l_speed_r_3 + l_speed_r_4) / 4;
+          //GARY_TO_BINARY_Pro((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, rect_max_threshold, rect_min_threshold);
+          draw_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line);
           // 发送图像
           seekfree_assistant_camera_send();
-          
-          //用于实现双核通信——主要是1核发、0核收
-          //for(int i = 0; i < DATA_LENGTH; i ++)                                   // M7_1数据自增 步进值0.1
-          //{
-            //m7_1_data[i] += 0.1;
-          //}
-          //SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
+
+          SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
       }
-     
     }
 }
 
