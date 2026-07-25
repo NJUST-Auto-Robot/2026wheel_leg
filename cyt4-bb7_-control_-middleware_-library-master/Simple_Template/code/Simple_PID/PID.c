@@ -50,7 +50,11 @@ void Positional_PID_Calculate(PID * pid)
 	//位置式PID计算公式
 	pid->out = (pid->kp * pid->err_p) + (pid->ki * pid->err_i) + (pid->kd * pid->err_d);
 	//输出限制
-        pid->output = pid->out;
+        if(pid->output >= MAX_OUT)
+                pid->output = MAX_OUT;
+        else if(pid->output <= -MAX_OUT)
+                pid->output = -MAX_OUT;
+        pid->output = pid->out / MAX_OUT * MAX_OUTPUT;
         if(pid->output >= MAX_OUTPUT)
                 pid->output = MAX_OUTPUT;
         else if(pid->output <= -MAX_OUTPUT)

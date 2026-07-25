@@ -91,10 +91,10 @@ int main(void)
     PID_Init(&center_PID_3);
     PID_Init(&center_PID_4);
     
-    PID_Set(&center_PID_1, 0.14, 0.0, 0.0);
-    PID_Set(&center_PID_2, 0.14, 0.0, 0.0);
-    PID_Set(&center_PID_3, 0.14, 0.0, 0.0);
-    PID_Set(&center_PID_4, 0.14, 0.0, 0.0);
+    PID_Set(&center_PID_1, 1.14, 0.01, 0.0);
+    PID_Set(&center_PID_2, 1.14, 0.01, 0.0);
+    PID_Set(&center_PID_3, 1.14, 0.01, 0.0);
+    PID_Set(&center_PID_4, 1.14, 0.01, 0.0);
     
     //wifi——spi模块初始化
     while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
@@ -135,7 +135,10 @@ int main(void)
           //测试图传是否正常
           //GARY_TO_BINARY((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 66);
           //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &try_block);
-          
+          if(task_flag == 1)
+          {
+            
+          }
           
           //用于科目一找障碍
           //Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 170, 150, 70, 40, 48, 40);
@@ -146,23 +149,38 @@ int main(void)
           //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
           
           //用于科目二行驶至矩形框内合适位置
-          find_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line, rect_max_threshold, rect_min_threshold);
-          l_speed_l_1 = PID_Control(&center_PID_1, center_x, line.center_line_center_x[0]);
-          l_speed_l_2 = PID_Control(&center_PID_2, center_x, line.center_line_center_x[10]);
-          l_speed_l_3 = PID_Control(&center_PID_3, center_x, line.center_line_center_x[20]);
-          l_speed_l_4 = PID_Control(&center_PID_4, center_x, line.center_line_center_x[30]);
-          l_speed_r_1 = -l_speed_l_1;
-          l_speed_r_2 = -l_speed_l_2;
-          l_speed_r_3 = -l_speed_l_3;
-          l_speed_r_4 = -l_speed_l_4;
-          line_speed_left = 0.4 + (l_speed_l_1 + l_speed_l_2 + l_speed_l_3 + l_speed_l_4) / 4;
-          line_speed_right = 0.4 + (l_speed_r_1 + l_speed_r_2 + l_speed_r_3 + l_speed_r_4) / 4;
-          //GARY_TO_BINARY_Pro((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, rect_max_threshold, rect_min_threshold);
-          draw_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line);
+          else if(task_flag == 2)
+          {
+            find_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line, rect_max_threshold, rect_min_threshold);
+            l_speed_l_1 = PID_Control(&center_PID_1, center_x, line.center_line_center_x[0]);
+            l_speed_l_2 = PID_Control(&center_PID_2, center_x, line.center_line_center_x[10]);
+            l_speed_l_3 = PID_Control(&center_PID_3, center_x, line.center_line_center_x[20]);
+            l_speed_l_4 = PID_Control(&center_PID_4, center_x, line.center_line_center_x[30]);
+            l_speed_r_1 = -l_speed_l_1;
+            l_speed_r_2 = -l_speed_l_2;
+            l_speed_r_3 = -l_speed_l_3;
+            l_speed_r_4 = -l_speed_l_4;
+            line_speed_left = 0.6 + (l_speed_l_1 + l_speed_l_2 + l_speed_l_3 + l_speed_l_4) / 4;
+            line_speed_right = 0.6 + (l_speed_r_1 + l_speed_r_2 + l_speed_r_3 + l_speed_r_4) / 4;
+            //GARY_TO_BINARY_Pro((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, rect_max_threshold, rect_min_threshold);
+            m7_1_data[0] = line_speed_left;
+            m7_1_data[1] = line_speed_right;
+            SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
+            image_copy[line.top_point_y][94] = 255;
+            draw_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line);
+            if(line.top_point_y >= 55 && line.top_point_y <= 65)
+              task_flag = 3;
+          }
+          else if(task_flag == 3)
+          {
+            m7_1_data[0] = -0.4;
+            m7_1_data[1] = 0.4;
+            SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
+         }
           // 发送图像
           seekfree_assistant_camera_send();
 
-          SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
+          //SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));
       }
     }
 }

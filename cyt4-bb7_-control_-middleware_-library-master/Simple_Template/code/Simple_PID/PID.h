@@ -4,8 +4,9 @@
 
 #include "zf_common_typedef.h"
 
-#define MAX_INTEGRAL_ERR 60
-#define MAX_OUTPUT       0.2
+#define MAX_INTEGRAL_ERR 60.0f
+#define MAX_OUT          30.0f
+#define MAX_OUTPUT       0.2f
 
 typedef struct
 {

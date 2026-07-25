@@ -317,8 +317,8 @@ void ControlTask(void *argument) {
     // M7_0核心有Dcache 当需要读取RAM地址数据时应该更新Dcache的内容 否则可能只是读取到Dcache而不是读取的RAM
     SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));      
     
-    target_linear_speed_l = 0.8;
-    target_linear_speed_r = 0.8;
+    target_linear_speed_l = m7_1_data[0];
+    target_linear_speed_r = m7_1_data[1];
     // 在这里可以添加平衡控制的代码，例如使用LQR算法计算控制输入，并通过PWM输出控制电机
     float x_l_ref[] = {0.0f, target_linear_speed_l, -1.0f*3.1715f/180.0f, 0.0f}; // 目标状态向量
     float x_r_ref[] = {0.0f, target_linear_speed_r, -1.0f*3.1715f/180.0f, 0.0f}; // 目标状态向量

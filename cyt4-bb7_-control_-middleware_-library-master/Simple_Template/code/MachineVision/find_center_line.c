@@ -37,7 +37,7 @@ void find_center_line(uint8_t* image, uint8_t width, uint8_t height, Line_Struct
     Line->center_line_center_x[i] = (Line->center_line_left_x[i] + Line->center_line_right_x[i]) / 2;
   }
   //从上往下逐行判断x=94——中线的顶点，此点y值用于判断是否行至终点
-  for(int16_t y = 0; y < 100; y--)
+  for(int16_t y = 100; y > 0; y--)
   {
     if(image[y * width + 94] >= min_threshold && image[y * width + 94] <= max_threshold) 
     {
