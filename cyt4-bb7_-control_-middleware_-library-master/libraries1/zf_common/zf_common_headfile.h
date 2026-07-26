@@ -79,7 +79,7 @@
 //#include "zf_device_ble6a20.h"
 //#include "zf_device_dl1a.h"
 //#include "zf_device_dl1b.h"
-//#include "zf_device_gnss.h"
+#include "zf_device_gnss.h"
 //#include "zf_device_icm20602.h"
 //#include "zf_device_imu660ra.h"
 //#include "zf_device_imu660rb.h"

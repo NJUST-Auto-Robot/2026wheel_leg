@@ -108,17 +108,17 @@ void gpio_10_exti_isr() {}
 void gpio_11_exti_isr() {
   if (exti_flag_get(P11_0)) {
     if (gpio_get_level(P11_0)) {
-      printf("key 1 is pressed!\r\n");
+
     }
   }
   if (exti_flag_get(P11_1)) {
     if (gpio_get_level(P11_1)) {
-      printf("key 2 is pressed!\r\n");
+
     }
   }
   if (exti_flag_get(P11_2)) {
     if (gpio_get_level(P11_2)) {
-      printf("key 3 is pressed!\r\n");
+
     }
   }
 }
@@ -162,89 +162,89 @@ void gpio_23_exti_isr() {}
 // **************************** 串口中断函数 ****************************
 // 串口0默认作为调试串口
 void uart0_isr(void) {
-  if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_0)) &
-      CY_SCB_UART_RX_NOT_EMPTY) // 串口0接收中断
-  {
-    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_0),
-                            CY_SCB_UART_RX_NOT_EMPTY); // 清除接收中断标志位
-
-    uart0_read_byte(); // 读取一个字节到对应的串口fifo
-  } else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_0)) &
-             CY_SCB_UART_TX_DONE) // 串口0发送中断
-  {
-    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_0),
-                            CY_SCB_UART_TX_DONE); // 清除接收中断标志位
-  }
+  if(uart_isr_mask(UART_0))            // 串口0接收中断
+    {
+        
+#if DEBUG_UART_USE_INTERRUPT             // 如果开启 debug 串口中断
+        //debug_interrupr_handler();       // 调用 debug 串口接收处理函数 数据会被 debug 环形缓冲区读取
+#endif                                   // 如果修改了 DEBUG_UART_INDEX 那这段代码需要放到对应的串口中断去
+      
+    }
+    else                                 // 串口0发送中断
+    {           
+        
+        
+        
+    }
 }
 
 void uart1_isr(void) {
-  if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_1)) &
-      CY_SCB_UART_RX_NOT_EMPTY) // 串口1接收中断
-  {
-    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_1),
-                            CY_SCB_UART_RX_NOT_EMPTY); // 清除接收中断标志位
-    uart1_read_byte(); // 读取一个字节到对应的串口fifo
-
-  } else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_1)) &
-             CY_SCB_UART_TX_DONE) // 串口1发送中断
-  {
-    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_1),
-                            CY_SCB_UART_TX_DONE); // 清除接收中断标志位
-  }
+  if(uart_isr_mask(UART_1))            // 串口1接收中断
+    {
+        
+        //wireless_module_uart_handler();
+      
+    }
+    else                                // 串口1发送中断
+    {
+      
+        
+        
+    }
 }
 
 void uart2_isr(void) {
-  if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_2)) &
-      CY_SCB_UART_RX_NOT_EMPTY) // 串口2接收中断
-  {
-    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_2),
-                            CY_SCB_UART_RX_NOT_EMPTY); // 清除接收中断标志位
-    uart2_read_byte(); // 读取一个字节到对应的串口fifo
-
-  } else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_2)) &
-             CY_SCB_UART_TX_DONE) // 串口2发送中断
-  {
-    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_2),
-                            CY_SCB_UART_TX_DONE); // 清除接收中断标志位
-  }
+  if(uart_isr_mask(UART_2))            // 串口2接收中断
+    {
+        
+       gnss_uart_callback();
+        
+    }
+    else                                // 串口2发送中断
+    {
+        
+        
+       
+    }
 }
 
 void uart3_isr(void) {
-  if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_3)) &
-      CY_SCB_UART_RX_NOT_EMPTY) // 串口3接收中断
-  {
-    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_3),
-                            CY_SCB_UART_RX_NOT_EMPTY); // 清除接收中断标志位
-    uart3_read_byte(); // 读取一个字节到对应的串口fifo
-
-  } else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_3)) &
-             CY_SCB_UART_TX_DONE) // 串口3发送中断
-  {
-    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_3),
-                            CY_SCB_UART_TX_DONE); // 清除接收中断标志位
-  }
+  if(uart_isr_mask(UART_3))            // 串口3接收中断
+    {
+        
+        
+        
+    }
+    else                                // 串口3发送中断
+    {
+      
+        
+        
+    }
 }
 
 void uart4_isr(void) {
-  if (Cy_SCB_GetRxInterruptMask(get_scb_module(UART_4)) &
-      CY_SCB_UART_RX_NOT_EMPTY) // 串口4接收中断
-  {
-    Cy_SCB_ClearRxInterrupt(get_scb_module(UART_4),
-                            CY_SCB_UART_RX_NOT_EMPTY); // 清除接收中断标志位
-    //uart4_callback(); // 直接在中断回调中完成 CRSF 数据处理
+  if(uart_isr_mask(UART_4))            // 串口4接收中断
+    {
 
-  } else if (Cy_SCB_GetTxInterruptMask(get_scb_module(UART_4)) &
-             CY_SCB_UART_TX_DONE) // 串口4发送中断
-  {
-    Cy_SCB_ClearTxInterrupt(get_scb_module(UART_4),
-                            CY_SCB_UART_TX_DONE); // 清除接收中断标志位
-  }
+        //uart_receiver_handler();                                                                // 串口接收机回调函数
+       
+    }
+    else                                // 串口4发送中断
+    {
+      
+        
+        
+    }
 }
 
 void uart5_isr(void) {
 ;
 }
 
+void uart6_isr(void) {
+;
+}
 
 /**
  * @brief debug串口空闲中断处理函数

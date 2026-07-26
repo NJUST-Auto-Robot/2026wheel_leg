@@ -69,7 +69,7 @@ uint8_t the_flag_of_camera_init = 1;
 uint8_t rect_max_threshold = 160;
 uint8_t rect_min_threshold = 120;
 uint8_t center_x = 93;
-uint8_t task_flag = 1;
+uint8_t task_flag = 3;
 //循中线pid控制变量
 float line_speed_left = 0.0f;
 float line_speed_right = 0.0f;
@@ -107,8 +107,8 @@ float true_right_distance = 0.0f;
 uint8_t left_distance_is_stable = 0;
 uint8_t right_distance_is_stable = 0;
 
-float d_speed_l = 0.0f;
-float d_speed_r = 0.0f;
+float d_speed_l = 0.4f;
+float d_speed_r = 0.4f;
 
 int main(void)
 {   
@@ -118,6 +118,9 @@ int main(void)
     // 此处编写用户代码 例如外设初始化代码等
     //uart_tx_interrupt(UART_INDEX, 1);                                           // 开启 发送中断
     //uart_rx_interrupt(UART_INDEX, 1);                                           // 开启 UART_INDEX 的接收中断
+    
+    gnss_init(TAU1201);
+    
     PID_Init(&center_PID_1);
     PID_Init(&center_PID_2);
     PID_Init(&center_PID_3);
@@ -138,7 +141,7 @@ int main(void)
     PID_Set(&Right_Distance_PID, 1.14, 0.01, 0.0);
     
     //wifi——spi模块初始化
-    while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
+    /*while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
     //等待网络连接
     if(1 != WIFI_SPI_AUTO_CONNECT)                                              // 如果没有开启自动连接 就需要手动连接目标 IP
     {
@@ -150,13 +153,13 @@ int main(void)
         {
             ;
         }
-    }
+    }*/
     //摄像头初始化
     mt9v03x_init();
     // 逐飞助手初始化 数据传输使用高速WIFI SPI
-    seekfree_assistant_interface_init(SEEKFREE_ASSISTANT_WIFI_SPI);
+    //seekfree_assistant_interface_init(SEEKFREE_ASSISTANT_WIFI_SPI);
     // 发送总钻风图像信息(仅包含原始图像信息)
-    seekfree_assistant_camera_information_config(SEEKFREE_ASSISTANT_MT9V03X, image_copy[0], MT9V03X_W, MT9V03X_H);
+    //seekfree_assistant_camera_information_config(SEEKFREE_ASSISTANT_MT9V03X, image_copy[0], MT9V03X_W, MT9V03X_H);
 
     
     // 此处编写用户代码 例如外设初始化代码等
@@ -165,7 +168,20 @@ int main(void)
       // 此处编写需要循环执行的代码
 
         //uart_write_buffer(UART_INDEX, &send_data, 1);
-      
+      if(gnss_flag)
+      {
+            gnss_flag = 0;
+            gnss_data_parse();           //开始解析数据
+            //gnss.time.year, gnss.time.month, gnss.time.day            // 输出年月日时分秒
+            //gnss.time.hour, gnss.time.minute, gnss.time.second        // 输出年月日时分秒
+            //gnss.state              //输出当前定位有效模式 1：定位有效  0：定位无效
+            //gnss.latitude           //输出纬度信息
+            //gnss.longitude          //输出经度信息
+            //gnss.speed              //输出速度信息
+            //gnss.direction          //输出方向信息
+            //gnss.satellite_used     //输出当前用于定位的卫星数量
+            //gnss.height             //输出当前gnss天线所处高度
+      }
       
       //获取从0核获得的角度数据核距离数据
       SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));      
@@ -226,20 +242,15 @@ int main(void)
             if(last_left_distance != 0.0f)
             {
               //此处用于判断是否稳定，可用于结束左轮距离pid控制——连续20次目标距离和实际距离的误差小于0.1认为稳定
-              if(fabsf(target_left_distacne - true_left_distance) < 0.1f && left_distance_is_stable < 20)
-              {
-                left_distance_is_stable++;
-              }
-              else if(fabsf(target_left_distacne - true_left_distance) > 0.1f && left_distance_is_stable < 20)
-              {
-                left_distance_is_stable = 0;
-              }
-              
               true_left_distance += actual_left_distance - last_left_distance;//设想的距离pid控制是以自身当前初始位置为起点，控制转过target_left_distacne度
               last_left_distance = actual_left_distance;
-              
-              d_speed_l = PID_Control_Angles_And_Distance(&Left_Distance_PID, target_left_distacne, true_left_distance, DISTANCE_PID);//pid计算
-              
+              if(true_left_distance >= 0.8f * target_left_distacne)
+              {
+                if(d_speed_l != 0.6f)
+                {
+                    d_speed_l -= 0.1f * (d_speed_l - 0.6f);
+                }
+              }
             }
             else
             {
@@ -250,28 +261,24 @@ int main(void)
             if(last_right_distance != 0.0f)
             {
               //此处用于判断是否稳定，可用于结束角度pid控制——连续20次目标角度和实际角度的误差小于1度认为稳定
-              if(fabsf(target_right_distacne - true_right_distance) < 0.1f && right_distance_is_stable < 20)
-              {
-                right_distance_is_stable++;
-              }
-              else if(fabsf(target_right_distacne - true_right_distance) > 0.1f && right_distance_is_stable < 20)
-              {
-                right_distance_is_stable = 0;
-              }
-              
               true_right_distance += actual_right_distance - last_right_distance;//设想的角度pid控制是以自身当前初始姿态为0度，控制转过target_yaw度
               last_right_distance = actual_right_distance;
-              
-              d_speed_r = PID_Control_Angles_And_Distance(&Right_Distance_PID, target_right_distacne, true_right_distance, DISTANCE_PID);//pid计算
-              
+              if(true_right_distance >= 0.8f * target_right_distacne)
+              {
+                if(d_speed_r != -0.6f)
+                {
+                    d_speed_r -= 0.1f * (d_speed_r + 0.6f);
+                }
+              }
             }
             else
             {
               last_right_distance = actual_right_distance;
             }
-              m7_1_to_m7_0_data[0] = 0.2 + d_speed_l;//传速度值给0核
-              m7_1_to_m7_0_data[1] = 0.2 + d_speed_r;//传速度值给0核
-              SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+            
+            m7_1_to_m7_0_data[0] = d_speed_l;//传速度值给0核
+            m7_1_to_m7_0_data[1] = d_speed_r;//传速度值给0核
+            SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
           }
           
           
@@ -313,12 +320,12 @@ int main(void)
           }
           else if(task_flag == 3)
           {
-            m7_1_to_m7_0_data[0] = 0.3;
-            m7_1_to_m7_0_data[1] = 0.3;
+            m7_1_to_m7_0_data[0] = 0.4;
+            m7_1_to_m7_0_data[1] = -0.4;
             SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
           }
           // 发送图像
-          seekfree_assistant_camera_send();
+          //seekfree_assistant_camera_send();
 
           //SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
       }

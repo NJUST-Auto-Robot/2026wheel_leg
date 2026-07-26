@@ -27,7 +27,6 @@
 #include "zf_common_headfile.h"
 #include <math.h>
 // 任务所需包含头文件
-#include "algorithm/mahony/mahony.h"
 #include "Module/IMU660RB/imu_data.h"
 #include "Controller/LQR.h"
 #include "Controller/Motor.h"
