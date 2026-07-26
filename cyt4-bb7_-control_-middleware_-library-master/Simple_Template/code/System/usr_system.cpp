@@ -35,13 +35,11 @@
 #include "Controller/CRSF.h"
 #include "Controller/CRC8.h"
 
-#define M7_1_TO_M7_0_DATA_LENGTH               (5)                                           // 数组数据长度
 
 #pragma location = 0x28001000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
                                                                                 // 此处为0x28001014的原因是前面放了一个M0的数组
 __no_init float m7_1_to_m7_0_data[M7_1_TO_M7_0_DATA_LENGTH];                        // 定义 M7_1 演示数据数组 浮点数类型
 
-#define M7_0_TO_M7_1_DATA_LENGTH               (5)                                           // 数组数据长度
 
 #pragma location = 0x28002000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
                                                                                 // 此处为0x28001014的原因是前面放了一个M0的数组
@@ -328,6 +326,8 @@ void ControlTask(void *argument) {
     // M7_0核心有Dcache 当需要读取RAM地址数据时应该更新Dcache的内容 否则可能只是读取到Dcache而不是读取的RAM
     SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));      
     
+    //target_linear_speed_l = 0.0f;
+    //target_linear_speed_r = 0.0f;
     target_linear_speed_l = m7_1_to_m7_0_data[0];
     target_linear_speed_r = m7_1_to_m7_0_data[1];
     // 在这里可以添加平衡控制的代码，例如使用LQR算法计算控制输入，并通过PWM输出控制电机

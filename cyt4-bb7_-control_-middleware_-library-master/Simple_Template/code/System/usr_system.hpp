@@ -28,6 +28,11 @@
 #define PrioritySuperHigh (7)
 #define PriorityRealtime (8)
 
+//双核通信数组定义
+#define M7_1_TO_M7_0_DATA_LENGTH               (5)                                           // 数组数据长度
+extern float m7_1_to_m7_0_data[M7_1_TO_M7_0_DATA_LENGTH];;
+#define M7_0_TO_M7_1_DATA_LENGTH               (5)                                           // 数组数据长度
+extern float m7_0_to_m7_1_data[M7_1_TO_M7_0_DATA_LENGTH];;
 /**
   @brief 连接状态
 */

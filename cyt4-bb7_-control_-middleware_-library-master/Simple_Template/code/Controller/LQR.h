@@ -2,6 +2,7 @@
 #define _LQR_H_
 
 #include "zf_common_typedef.h"
+#include "System/usr_system.hpp"
 #include "usr_uart.hpp"
 #ifdef __cplusplus
 extern "C" {

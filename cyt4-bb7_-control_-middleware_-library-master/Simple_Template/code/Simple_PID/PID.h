@@ -17,7 +17,7 @@
 
 #define DISTANCE_PID_MAX_INTEGRAL_ERR   10.0f
 #define DISTANCE_PID_MAX_OUT            5.0f
-#define DISTANCE_PID_MAX_OUTPUT         0.2f
+#define DISTANCE_PID_MAX_OUTPUT         0.4f
 
 typedef struct
 {
