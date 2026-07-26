@@ -137,6 +137,12 @@ uint32_t LQR_process_speed(char *buf, uint32_t len) {
             left_Wheel_position = left_p*19.2f*0.035f*2*3.1415f/360-init_position_left;
             right_Wheel_Speed = -right_v*0.035f*2*3.1415f/60.0f;
             right_Wheel_position = -right_p*19.2f*0.035f*2*3.1415f/360-init_position_right;
+            
+            m7_0_to_m7_1_data[4] = 1;
+            m7_0_to_m7_1_data[2] = left_Wheel_position;
+            m7_0_to_m7_1_data[3] = right_Wheel_position;
+            SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));      
+            
             if (first_run) {
                 init_position_left = left_Wheel_position;
                 init_position_right = right_Wheel_position;
@@ -182,8 +188,8 @@ void sendSpeedToMotor(float left_sp,float right_sp)
     if (right_duty > 8000) right_duty = 8000;
     if (right_duty < -8000) right_duty = -8000;
      // 1. 格式化字符串，假设电机驱动器接受 "SET-DUTY,left_duty,right_duty" 格式的命令
-    int len = snprintf(buf, sizeof(buf), "SET-DUTY,%d,%d\r\n", left_duty, right_duty);
-    //int len = snprintf(buf, sizeof(buf), "SET-DUTY,%d,%d\r\n", 0, 0);
+    //int len = snprintf(buf, sizeof(buf), "SET-DUTY,%d,%d\r\n", left_duty, right_duty);
+    int len = snprintf(buf, sizeof(buf), "SET-DUTY,%d,%d\r\n", 0, 0);
     // 2. 通过UART4发送
     UartSendArray[4]((uint8_t*)buf, (uint16_t)len);
 }

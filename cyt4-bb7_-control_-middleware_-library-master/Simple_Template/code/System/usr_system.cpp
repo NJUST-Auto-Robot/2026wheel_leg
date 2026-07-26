@@ -35,10 +35,17 @@
 #include "Controller/CRSF.h"
 #include "Controller/CRC8.h"
 
-#define DATA_LENGTH               (5)                                           // 数组数据长度
+#define M7_1_TO_M7_0_DATA_LENGTH               (5)                                           // 数组数据长度
 
-#pragma location = 0x28001000                                                   // 将下面这个数组定义到指定的RAM地址，#pragma需要手动分配地址，因此需要计算数据长度后再分配
-__no_init float m7_1_data[DATA_LENGTH];                                        // 定义M7_1演示数据数组 浮点数类型  由于该数组已经在M7_1核心赋值过初值，因此此处不再初
+#pragma location = 0x28001000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
+                                                                                // 此处为0x28001014的原因是前面放了一个M0的数组
+__no_init float m7_1_to_m7_0_data[M7_1_TO_M7_0_DATA_LENGTH];                        // 定义 M7_1 演示数据数组 浮点数类型
+
+#define M7_0_TO_M7_1_DATA_LENGTH               (5)                                           // 数组数据长度
+
+#pragma location = 0x28002000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
+                                                                                // 此处为0x28001014的原因是前面放了一个M0的数组
+__no_init float m7_0_to_m7_1_data[M7_0_TO_M7_1_DATA_LENGTH];                        // 定义 M7_1 演示数据数组 浮点数类型
 
 
 // 外设宏定义
@@ -302,6 +309,10 @@ void IMU660RBTask(void *argument) {
           }
           } 
         imu660rb.imu_data_ready = false;    // 读取数据后，重置数据就绪标志
+        //将0核的航向角数据发送给1核，1核进行pid角度控制？？
+        m7_0_to_m7_1_data[1] = 1.0f;
+        m7_0_to_m7_1_data[0] = imu660rb.angles.yaw;
+        SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));      
      }
      
     vTaskDelay(1);
@@ -315,10 +326,10 @@ void ControlTask(void *argument) {
   while(1)
   { 
     // M7_0核心有Dcache 当需要读取RAM地址数据时应该更新Dcache的内容 否则可能只是读取到Dcache而不是读取的RAM
-    SCB_CleanInvalidateDCache_by_Addr(&m7_1_data, sizeof(m7_1_data));      
+    SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));      
     
-    target_linear_speed_l = m7_1_data[0];
-    target_linear_speed_r = m7_1_data[1];
+    target_linear_speed_l = m7_1_to_m7_0_data[0];
+    target_linear_speed_r = m7_1_to_m7_0_data[1];
     // 在这里可以添加平衡控制的代码，例如使用LQR算法计算控制输入，并通过PWM输出控制电机
     float x_l_ref[] = {0.0f, target_linear_speed_l, -1.0f*3.1715f/180.0f, 0.0f}; // 目标状态向量
     float x_r_ref[] = {0.0f, target_linear_speed_r, -1.0f*3.1715f/180.0f, 0.0f}; // 目标状态向量
