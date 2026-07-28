@@ -58,8 +58,8 @@ bool control_ready = false;
 USR_SYSTEM usr_sys;
 
 // 全局变量：目标线速度 (单位 m/s)，供 ControlTask 和 VMCTask 共用
-float target_linear_speed_l = 0.0f; 
-float target_linear_speed_r = 0.0f; 
+float target_linear_speed_l = -0.05f; 
+float target_linear_speed_r = 0.85f; 
 float target_linear_speed = 0.0f; 
 
 // 用于存储估算的车身高度 (单位 m)

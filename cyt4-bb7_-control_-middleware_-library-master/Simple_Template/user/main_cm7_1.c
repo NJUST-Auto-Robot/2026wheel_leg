@@ -38,19 +38,7 @@
 #include "MachineVision/find_block.h"
 #include "MachineVision/find_center_line.h"
 #include "Simple_PID/PID.h"
-
-#define M7_1_TO_M7_0_DATA_LENGTH               (5)                                           // 数组数据长度
-
-#pragma location = 0x28001000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
-                                                                                // 此处为0x28001014的原因是前面放了一个M0的数组
-float m7_1_to_m7_0_data[M7_1_TO_M7_0_DATA_LENGTH] = {0.2, 0.2, 0.2, 0.3, 0.4};                        // 定义 M7_1 演示数据数组 浮点数类型
-
-#define M7_0_TO_M7_1_DATA_LENGTH               (5)                                           // 数组数据长度
-
-#pragma location = 0x28002000                                                   // 将下面这个数组定义到指定的RAM地址，便于其他核心直接访问(开源库默认在 0x28001000 地址保留了8kb的空间用于数据交互)
-                                                                                // 此处为0x28001014的原因是前面放了一个M0的数组
-float m7_0_to_m7_1_data[M7_0_TO_M7_1_DATA_LENGTH] = {0.2, 0.2, 0.2, 0.3, 0.4};                        // 定义 M7_1 演示数据数组 浮点数类型
-
+#include "Simple_PID/Base_Control.h"
 
 //wifi——spi告诉模块网络连接部分宏定义
 #define WIFI_SSID_TEST          "AutoRobot_201"
@@ -83,49 +71,6 @@ float l_speed_r_1 = 0.0f;
 float l_speed_r_2 = 0.0f;
 float l_speed_r_3 = 0.0f;
 float l_speed_r_4 = 0.0f;
-//角度pid控制变量
-float is_yaw_ok = 0.0f;
-float target_yaw = 0.0f;
-float actual_yaw = 0.0f;
-float true_yaw = 0.0f;
-float have_yaw = 0.0f;
-uint8_t yaw_is_stable = 0;
-
-float a_speed_l = 0.0f;
-float a_speed_r = 0.0f;
-
-uint8_t Angle_Control(float target, float base_speed_l, float base_speed_r);
-
-//距离pid控制变量
-float is_distance_ok = 0.0f;
-
-uint8_t distance_control_flag = 0;
-
-float target_left_distacne = 0.0f;
-float actual_left_distance = 0.0f;
-float last_left_distance = 0.0f;
-float true_left_distance = 0.0f;
-
-float target_right_distacne = 0.0f;
-float actual_right_distance = 0.0f;
-float last_right_distance = 0.0f;
-float true_right_distance = 0.0f;
-
-uint8_t left_distance_is_stable = 0;
-uint8_t right_distance_is_stable = 0;
-
-float d_speed_l = 0.6f;
-float d_speed_r = 0.6f;
-
-float delta_speed_l = 0.0f;
-float delta_speed_r = 0.0f;
-
-uint8_t integral_l_num = 0;
-uint8_t integral_r_num = 0;
-
-uint8_t Distance_Control(float left_target, float right_target, float end_speed_l, float end_speed_r);
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t Angle_And_Distance_Control(float target, float base_speed_l, float base_speed_r, float left_target, float right_target, float end_speed_l, float end_speed_r);
 
 int main(void)
 {   
@@ -133,8 +78,6 @@ int main(void)
     debug_info_init(); 
 
     // 此处编写用户代码 例如外设初始化代码等
-    //uart_tx_interrupt(UART_INDEX, 1);                                           // 开启 发送中断
-    //uart_rx_interrupt(UART_INDEX, 1);                                           // 开启 UART_INDEX 的接收中断
     
     gnss_init(TAU1201);
     
@@ -184,7 +127,6 @@ int main(void)
     {
       // 此处编写需要循环执行的代码
 
-        //uart_write_buffer(UART_INDEX, &send_data, 1);
       if(gnss_flag)
       {
             gnss_flag = 0;
@@ -200,13 +142,18 @@ int main(void)
             //gnss.height             //输出当前gnss天线所处高度
       }
       
+      //结算需要行驶需要的yaw角和距离
+      how_to_go_to_point((float *)stage_1_point, stage_1_distance, stage_1_azimuth, 3);
+      to_get_useful_angle(stage_1_azimuth, stage_1_yaw, 11.45, 3);
+      
+      
       //获取从0核获得的角度数据核距离数据
       SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));      
       is_yaw_ok = m7_0_to_m7_1_data[1];
       is_distance_ok = m7_0_to_m7_1_data[4];
       if(is_yaw_ok == 1.0f)
       {
-        actual_yaw = m7_0_to_m7_1_data[0];
+        actual_yaw = m7_0_to_m7_1_data[0];//是否带负号根据车头方向定
         is_yaw_ok = 0.0f;
       }
       if(is_distance_ok == 1.0f)
@@ -218,7 +165,7 @@ int main(void)
 
           
       if(mt9v03x_finish_flag)
-     {
+      {
           mt9v03x_finish_flag = 0;
 
           // 在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
@@ -228,12 +175,93 @@ int main(void)
           //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &try_block);
           if(task_flag == 1)
           {
-            
             if(distance_control_flag == 0)
             {
-              if(Angle_And_Distance_Control(0.0f, 0.6f, 0.6f, 3.0f, 3.0f, -0.2f, 0.9f))
+              if(yaw_now == 0)
               {
-                distance_control_flag = 1;
+                yaw_now = actual_yaw;
+                target_yaw = yaw_now + 30;
+              }
+              if(turn_to_true_yaw == 0)
+              {
+                if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
+                  turn_to_true_yaw = 1;
+                else
+                {
+                  m7_1_to_m7_0_data[0] = -0.05;
+                  m7_1_to_m7_0_data[1] = 0.85;
+                  
+                  SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+                }
+              }
+              else
+              {
+                if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 1.5f, 1.5f, -0.05f, 0.85f))
+                {
+                  //进行调控阶段切换
+                  distance_control_flag = 1;
+                  //换调控阶段该变量应该清零
+                  turn_to_true_yaw = 0;
+                  //如果本阶段不是最后一个调控阶段则可直接在切换阶段的时候进行下一阶段需要调控的目标yaw角的赋值
+                  target_yaw = yaw_now - 45;
+                }
+              }
+            }
+            else if(distance_control_flag == 1)
+            {
+              if(turn_to_true_yaw == 0)
+              {
+                if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
+                  turn_to_true_yaw = 1;
+                else
+                {
+                  m7_1_to_m7_0_data[0] = -0.05;
+                  m7_1_to_m7_0_data[1] = 0.85;
+                  
+                  SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+                }
+              }
+              else
+              {
+                if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 3.0f, 3.0f, -0.05f, 0.85f))
+                {
+                  //进行调控阶段切换
+                  distance_control_flag = 2;
+                  //换调控阶段该变量应该清零
+                  turn_to_true_yaw = 0;
+                  //如果本阶段不是最后一个调控阶段则可直接在切换阶段的时候进行下一阶段需要调控的目标yaw角的赋值
+                  target_yaw = yaw_now + 30;
+                }
+              }
+            }
+            else if(distance_control_flag == 2)
+            {
+              if(turn_to_true_yaw == 0)
+              {
+                if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
+                  turn_to_true_yaw = 1;
+                else
+                {
+                  m7_1_to_m7_0_data[0] = -0.05;
+                  m7_1_to_m7_0_data[1] = 0.85;
+                  
+                  SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+                }
+              }
+              else
+              {
+                if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 1.5f, 1.5f, -0.05f, 0.85f))
+                {
+                  //进行调控阶段切换
+                  distance_control_flag = 3;
+                  //换调控阶段该变量应该清零
+                  turn_to_true_yaw = 0;
+                  //本阶段为最后调控阶段，所以需要进行清零
+                  yaw_now = 0;
+                  //本阶段为最后调控阶段，所以需要进行清零
+                  target_yaw = 0;
+                  
+                }
               }
             }
           //用于科目一找障碍
@@ -277,8 +305,13 @@ int main(void)
           else if(task_flag == 3)
           {
             //最佳转圈速度
-            m7_1_to_m7_0_data[0] = -0.2;
-            m7_1_to_m7_0_data[1] = 0.9;
+            //m7_1_to_m7_0_data[0] = -0.1;
+            //m7_1_to_m7_0_data[1] = 0.9;
+            
+            //中速自转
+            //m7_1_to_m7_0_data[0] = -0.05;
+            //m7_1_to_m7_0_data[1] = 0.85;
+            
             SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
           }
           // 发送图像
@@ -290,234 +323,3 @@ int main(void)
 }
 
 // **************************** 代码区域 ****************************
-///////////////////////////////////////////////////////////////////////////////角度距离pid///////////////////////////////////////////////////////////////////////////////////////
-//该函数放回的使目标角度和实际角度的差值连续小于1度的次数，可以根据该值结束角度pid控制，但进行下一次角度pid调控时应该将变量have_yaw清零
-//传入想要转过的角度、基本行驶左轮速度、基本行驶右轮速度
-uint8_t Angle_Control(float target, float base_speed_l, float base_speed_r)
-{
-    target_yaw = target;
-    if(have_yaw != 0.0f)
-    {
-      //此处用于判断是否稳定，可用于结束角度pid控制——连续20次目标角度和实际角度的误差小于1度认为稳定
-      if(fabsf(target_yaw - true_yaw) < 1.0f && yaw_is_stable < 20)
-      {
-        yaw_is_stable++;
-      }
-      else if(fabsf(target_yaw - true_yaw) > 1.0f && yaw_is_stable < 20)
-      {
-        yaw_is_stable = 0;
-      }
-      
-      true_yaw = actual_yaw - have_yaw;//设想的角度pid控制是以自身当前初始姿态为0度，控制转过target_yaw度
-      
-      a_speed_l = PID_Control_Angles_And_Distance(&Angle_PID, target_yaw, true_yaw, ANGLE_PID);//pid计算
-      a_speed_r = -a_speed_l;
-      
-      m7_1_to_m7_0_data[0] = base_speed_l + a_speed_l;//传速度值给0核
-      m7_1_to_m7_0_data[1] = base_speed_r + a_speed_r;
-      SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-    }
-    else
-    {
-      have_yaw = actual_yaw;//获取本次角度pid控制的初始姿态角度，如果进行新的初始姿态的角度pid控制应该额外清零
-    }
-    
-    return yaw_is_stable;
-}
-
-///////////////////////////////////////////////////////////////////////////////距离控制///////////////////////////////////////////////////////////////////////////////////////
-//此函数实现行驶到目标距离后将速度线性变化为终点速度，当速度到达终点速度时会清零相关变量并返回1，可根据该值进行下一次调控，且下一次调控于角度pid控制不同，无需进行变量清零
-//传入所要左轮行驶的距离、右轮行驶的距离、终点左轮速度、右轮速度
-uint8_t Distance_Control(float left_target, float right_target, float end_speed_l, float end_speed_r)
-{
-    target_left_distacne = left_target;
-    if(last_left_distance != 0.0f)
-    {
-      //此处用于判断是否接近终点，如果接近终点则进行简单线性速度变化使速度达到终点速度，没有则继续进行接近终点的行驶
-      if(true_left_distance >= 0.8f * target_left_distacne)
-      {
-        if(delta_speed_l == 0.0f)
-        {
-          delta_speed_l = d_speed_l - end_speed_l;
-        }
-        if(integral_l_num < 100)//通过100次的线性速度变化使速度到达终点速度
-        {
-          integral_l_num++;
-          d_speed_l -= 0.01f * delta_speed_l;
-        }
-      }
-      else
-      {
-        true_left_distance += actual_left_distance - last_left_distance;//设想的距离pid控制是以自身当前初始位置为起点，控制转过target_left_distacne度
-        last_left_distance = actual_left_distance;
-      }
-    }
-    else
-    {
-      last_left_distance = actual_left_distance;
-    }
-    target_right_distacne = right_target;
-    if(last_right_distance != 0.0f)
-    {
-      //此处用于判断是否接近终点，如果接近终点则进行简单线性速度变化使速度达到终点速度，没有则继续进行接近终点的行驶
-      if(true_right_distance >= 0.8f * target_right_distacne)
-      {
-        if(delta_speed_r == 0.0f)
-        {
-          delta_speed_r = d_speed_r - end_speed_r;
-        }
-        if(integral_r_num < 100)//通过100次的线性速度变化使速度到达终点速度
-        {
-          integral_r_num++;
-          d_speed_r -= 0.01f * delta_speed_r;
-        }
-      }
-      else
-      {
-        true_right_distance += actual_right_distance - last_right_distance;//设想的距离pid控制是以自身当前初始位置为起点，控制转过target_left_distacne度
-        last_right_distance = actual_right_distance;
-      }
-    }
-    else
-    {
-      last_right_distance = actual_right_distance;
-    }
-    
-    m7_1_to_m7_0_data[0] = d_speed_l;//传速度值给0核
-    m7_1_to_m7_0_data[1] = d_speed_r;//传速度值给0核
-    SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-    
-    //进行全局变量复位和是否完成单次距离控制进行返回值，成功返回1，失败返回0，便于下一次距离控制
-    if(integral_r_num == 100 && integral_l_num == 100)
-    {
-      integral_l_num = 0;
-      integral_r_num = 0;
-      
-      delta_speed_l = 0;
-      delta_speed_r = 0;
-      
-      last_left_distance = 0;
-      last_right_distance = 0;
-      
-      true_left_distance = 0;
-      true_right_distance = 0;
-        
-      return 1;
-    }
-    else
-    {
-      return 0;
-    }
-    
-}
-//此函数在角度和距离控制的基础上进行整合从而实现按照指定角度行驶指定距离，核心想法是行驶距离没有接近目标距离时以角度调控为主，如果接近目标距离则进行最后的线性速度变化到达目标速度，返回值和距离调控一致
-//传入参数为角度调控和距离调控参数的结合
-uint8_t Angle_And_Distance_Control(float target, float base_speed_l, float base_speed_r, float left_target, float right_target, float end_speed_l, float end_speed_r)
-{
-  uint8_t is_last_stage = 0;//用于判断传给0核的速度是角度pid的速度还是距离控制的速度
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    target_yaw = target;
-    if(have_yaw != 0.0f)
-    {
-      //此处用于判断是否稳定，可用于结束角度pid控制——连续20次目标角度和实际角度的误差小于1度认为稳定      
-      true_yaw = actual_yaw - have_yaw;//设想的角度pid控制是以自身当前初始姿态为0度，控制转过target_yaw度
-      
-      a_speed_l = PID_Control_Angles_And_Distance(&Angle_PID, target_yaw, true_yaw, ANGLE_PID);//pid计算
-      a_speed_r = -a_speed_l;
-    }
-    else
-    {
-      have_yaw = actual_yaw;//获取本次角度pid控制的初始姿态角度，如果进行新的初始姿态的角度pid控制应该额外清零
-    }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    target_left_distacne = left_target;
-    if(last_left_distance != 0.0f)
-    {
-      //此处用于判断是否接近终点，如果接近终点则进行简单线性速度变化使速度达到终点速度，没有则继续进行接近终点的行驶
-      if(true_left_distance >= 0.8f * target_left_distacne)
-      {
-        is_last_stage++;
-        if(delta_speed_l == 0.0f)
-        {
-          delta_speed_l = d_speed_l - end_speed_l;
-        }
-        if(integral_l_num < 100)//通过100次的线性速度变化使速度到达终点速度
-        {
-          integral_l_num++;
-          d_speed_l -= 0.01f * delta_speed_l;
-        }
-      }
-      else
-      {
-        true_left_distance += actual_left_distance - last_left_distance;//设想的距离pid控制是以自身当前初始位置为起点，控制转过target_left_distacne度
-        last_left_distance = actual_left_distance;
-      }
-    }
-    else
-    {
-      last_left_distance = actual_left_distance;
-    }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    target_right_distacne = right_target;
-    if(last_right_distance != 0.0f)
-    {
-      //此处用于判断是否接近终点，如果接近终点则进行简单线性速度变化使速度达到终点速度，没有则继续进行接近终点的行驶
-      if(true_right_distance >= 0.8f * target_right_distacne)
-      {
-        is_last_stage++;
-        if(delta_speed_r == 0.0f)
-        {
-          delta_speed_r = d_speed_r - end_speed_r;
-        }
-        if(integral_r_num < 100)//通过100次的线性速度变化使速度到达终点速度
-        {
-          integral_r_num++;
-          d_speed_r -= 0.01f * delta_speed_r;
-        }
-      }
-      else
-      {
-        true_right_distance += actual_right_distance - last_right_distance;//设想的距离pid控制是以自身当前初始位置为起点，控制转过target_left_distacne度
-        last_right_distance = actual_right_distance;
-      }
-    }
-    else
-    {
-      last_right_distance = actual_right_distance;
-    }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    if(is_last_stage == 2)
-    {
-      m7_1_to_m7_0_data[0] = d_speed_l;//传速度值给0核
-      m7_1_to_m7_0_data[1] = d_speed_r;//传速度值给0核
-      SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-    }
-    else
-    {
-      m7_1_to_m7_0_data[0] = base_speed_l + a_speed_l;//传速度值给0核
-      m7_1_to_m7_0_data[1] = base_speed_r + a_speed_r;
-      SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-    }
-    
-    //进行全局变量复位和是否完成单次距离控制进行返回值，成功返回1，失败返回0，便于下一次距离控制
-    if(integral_r_num == 100 && integral_l_num == 100)
-    {
-      integral_l_num = 0;
-      integral_r_num = 0;
-      
-      delta_speed_l = 0;
-      delta_speed_r = 0;
-      
-      last_left_distance = 0;
-      last_right_distance = 0;
-      
-      true_left_distance = 0;
-      true_right_distance = 0;
-        
-      return 1;
-    }
-    else
-    {
-      return 0;
-    }
-}

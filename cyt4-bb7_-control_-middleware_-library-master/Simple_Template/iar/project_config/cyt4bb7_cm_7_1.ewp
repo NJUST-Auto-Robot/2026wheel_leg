@@ -1160,6 +1160,12 @@
         <group>
             <name>Simple_PID</name>
             <file>
+                <name>$PROJ_DIR$\..\..\code\Simple_PID\Base_Control.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\code\Simple_PID\Base_Control.h</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\..\code\Simple_PID\PID.c</name>
             </file>
             <file>
