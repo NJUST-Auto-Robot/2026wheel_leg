@@ -72,6 +72,11 @@ float l_speed_r_2 = 0.0f;
 float l_speed_r_3 = 0.0f;
 float l_speed_r_4 = 0.0f;
 
+//
+float average_latitude = 0;
+float average_longitude = 0;
+uint8_t num = 0;
+
 int main(void)
 {   
     clock_init(SYSTEM_CLOCK_250M); 	// 时钟配置及系统初始化<务必保留>
@@ -100,6 +105,8 @@ int main(void)
     PID_Set(&Left_Distance_PID, 1.14, 0.01, 0.0);
     PID_Set(&Right_Distance_PID, 1.14, 0.01, 0.0);
     
+    //摄像头初始化
+    mt9v03x_init();
     //wifi——spi模块初始化
     /*while(wifi_spi_init(WIFI_SSID_TEST, WIFI_PASSWORD_TEST));
     //等待网络连接
@@ -113,13 +120,11 @@ int main(void)
         {
             ;
         }
-    }*/
-    //摄像头初始化
-    mt9v03x_init();
+    }
     // 逐飞助手初始化 数据传输使用高速WIFI SPI
-    //seekfree_assistant_interface_init(SEEKFREE_ASSISTANT_WIFI_SPI);
+    seekfree_assistant_interface_init(SEEKFREE_ASSISTANT_WIFI_SPI);
     // 发送总钻风图像信息(仅包含原始图像信息)
-    //seekfree_assistant_camera_information_config(SEEKFREE_ASSISTANT_MT9V03X, image_copy[0], MT9V03X_W, MT9V03X_H);
+    seekfree_assistant_camera_information_config(SEEKFREE_ASSISTANT_MT9V03X, image_copy[0], MT9V03X_W, MT9V03X_H);*/
 
     
     // 此处编写用户代码 例如外设初始化代码等
@@ -131,6 +136,11 @@ int main(void)
       {
             gnss_flag = 0;
             gnss_data_parse();           //开始解析数据
+            if(num < 100)
+            {
+              average_latitude += gnss.latitude;
+              average_longitude += gnss.longitude;
+            }
             //gnss.time.year, gnss.time.month, gnss.time.day            // 输出年月日时分秒
             //gnss.time.hour, gnss.time.minute, gnss.time.second        // 输出年月日时分秒
             //gnss.state              //输出当前定位有效模式 1：定位有效  0：定位无效
@@ -164,8 +174,110 @@ int main(void)
       }
 
           
-      if(mt9v03x_finish_flag)
+      if(task_flag == 1)
       {
+        if(distance_control_flag == 0)
+        {
+          if(yaw_now == 0)
+          {
+            yaw_now = actual_yaw;
+            target_yaw = yaw_now + 30;
+          }
+          if(turn_to_true_yaw == 0)
+          {
+            if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
+              turn_to_true_yaw = 1;
+            else
+            {
+              m7_1_to_m7_0_data[0] = -0.05;
+              m7_1_to_m7_0_data[1] = 0.85;
+              
+              SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+            }
+          }
+          else
+          {
+            if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 1.5f, 1.5f, -0.05f, 0.85f))
+            {
+              //进行调控阶段切换
+              distance_control_flag = 1;
+              //换调控阶段该变量应该清零
+              turn_to_true_yaw = 0;
+              //如果本阶段不是最后一个调控阶段则可直接在切换阶段的时候进行下一阶段需要调控的目标yaw角的赋值
+              target_yaw = yaw_now - 45;
+            }
+          }
+        }
+        else if(distance_control_flag == 1)
+        {
+          if(turn_to_true_yaw == 0)
+          {
+            if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
+              turn_to_true_yaw = 1;
+            else
+            {
+              m7_1_to_m7_0_data[0] = -0.05;
+              m7_1_to_m7_0_data[1] = 0.85;
+              
+              SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+            }
+          }
+          else
+          {
+            if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 3.0f, 3.0f, -0.05f, 0.85f))
+            {
+              //进行调控阶段切换
+              distance_control_flag = 2;
+              //换调控阶段该变量应该清零
+              turn_to_true_yaw = 0;
+              //如果本阶段不是最后一个调控阶段则可直接在切换阶段的时候进行下一阶段需要调控的目标yaw角的赋值
+              target_yaw = yaw_now + 30;
+            }
+          }
+        }
+        else if(distance_control_flag == 2)
+        {
+          if(turn_to_true_yaw == 0)
+          {
+            if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
+              turn_to_true_yaw = 1;
+            else
+            {
+              m7_1_to_m7_0_data[0] = -0.05;
+              m7_1_to_m7_0_data[1] = 0.85;
+              
+              SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+            }
+          }
+          else
+          {
+            if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 1.5f, 1.5f, -0.05f, 0.85f))
+            {
+              //进行调控阶段切换
+              distance_control_flag = 3;
+              //换调控阶段该变量应该清零
+              turn_to_true_yaw = 0;
+              //本阶段为最后调控阶段，所以需要进行清零
+              yaw_now = 0;
+              //本阶段为最后调控阶段，所以需要进行清零
+              target_yaw = 0;
+              
+            }
+          }
+        }
+        //用于科目一找障碍
+        //Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 170, 150, 70, 40, 48, 40);
+        //GARY_TO_BINARY_Pro((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 170, 150);
+        //image_copy[block.cy[0]][block.cx[0]] = 0;
+        //Draw_Max_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+        //Draw_Merge_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+        //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
+      }
+      //用于科目二根据矩形左右边线循中线行驶至矩形框内合适位置
+      else if(task_flag == 2)
+      {
+        if(mt9v03x_finish_flag)
+        {
           mt9v03x_finish_flag = 0;
 
           // 在发送前将图像备份再进行发送，这样可以避免图像出现撕裂的问题
@@ -173,151 +285,46 @@ int main(void)
           //测试图传是否正常
           //GARY_TO_BINARY((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 66);
           //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &try_block);
-          if(task_flag == 1)
-          {
-            if(distance_control_flag == 0)
-            {
-              if(yaw_now == 0)
-              {
-                yaw_now = actual_yaw;
-                target_yaw = yaw_now + 30;
-              }
-              if(turn_to_true_yaw == 0)
-              {
-                if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
-                  turn_to_true_yaw = 1;
-                else
-                {
-                  m7_1_to_m7_0_data[0] = -0.05;
-                  m7_1_to_m7_0_data[1] = 0.85;
-                  
-                  SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-                }
-              }
-              else
-              {
-                if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 1.5f, 1.5f, -0.05f, 0.85f))
-                {
-                  //进行调控阶段切换
-                  distance_control_flag = 1;
-                  //换调控阶段该变量应该清零
-                  turn_to_true_yaw = 0;
-                  //如果本阶段不是最后一个调控阶段则可直接在切换阶段的时候进行下一阶段需要调控的目标yaw角的赋值
-                  target_yaw = yaw_now - 45;
-                }
-              }
-            }
-            else if(distance_control_flag == 1)
-            {
-              if(turn_to_true_yaw == 0)
-              {
-                if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
-                  turn_to_true_yaw = 1;
-                else
-                {
-                  m7_1_to_m7_0_data[0] = -0.05;
-                  m7_1_to_m7_0_data[1] = 0.85;
-                  
-                  SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-                }
-              }
-              else
-              {
-                if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 3.0f, 3.0f, -0.05f, 0.85f))
-                {
-                  //进行调控阶段切换
-                  distance_control_flag = 2;
-                  //换调控阶段该变量应该清零
-                  turn_to_true_yaw = 0;
-                  //如果本阶段不是最后一个调控阶段则可直接在切换阶段的时候进行下一阶段需要调控的目标yaw角的赋值
-                  target_yaw = yaw_now + 30;
-                }
-              }
-            }
-            else if(distance_control_flag == 2)
-            {
-              if(turn_to_true_yaw == 0)
-              {
-                if(actual_yaw > target_yaw - 5 && actual_yaw < target_yaw + 5)
-                  turn_to_true_yaw = 1;
-                else
-                {
-                  m7_1_to_m7_0_data[0] = -0.05;
-                  m7_1_to_m7_0_data[1] = 0.85;
-                  
-                  SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-                }
-              }
-              else
-              {
-                if(Angle_And_Distance_Control_2(target_yaw, 0.6f, 0.6f, 1.5f, 1.5f, -0.05f, 0.85f))
-                {
-                  //进行调控阶段切换
-                  distance_control_flag = 3;
-                  //换调控阶段该变量应该清零
-                  turn_to_true_yaw = 0;
-                  //本阶段为最后调控阶段，所以需要进行清零
-                  yaw_now = 0;
-                  //本阶段为最后调控阶段，所以需要进行清零
-                  target_yaw = 0;
-                  
-                }
-              }
-            }
-          //用于科目一找障碍
-          //Find_Block_Pro_Max((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block, 170, 150, 70, 40, 48, 40);
-          //GARY_TO_BINARY_Pro((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, 170, 150);
-          //image_copy[block.cy[0]][block.cx[0]] = 0;
-          //Draw_Max_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
-          //Draw_Merge_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
-          //Draw_Block((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &block);
-          }
-          //用于科目二根据矩形左右边线循中线行驶至矩形框内合适位置
-          else if(task_flag == 2)
-          {
-            find_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line, rect_max_threshold, rect_min_threshold);
-            
-            l_speed_l_1 = PID_Control(&center_PID_1, center_x, line.center_line_center_x[0]);
-            l_speed_l_2 = PID_Control(&center_PID_2, center_x, line.center_line_center_x[10]);
-            l_speed_l_3 = PID_Control(&center_PID_3, center_x, line.center_line_center_x[20]);
-            l_speed_l_4 = PID_Control(&center_PID_4, center_x, line.center_line_center_x[30]);
-            
-            l_speed_r_1 = -l_speed_l_1;
-            l_speed_r_2 = -l_speed_l_2;
-            l_speed_r_3 = -l_speed_l_3;
-            l_speed_r_4 = -l_speed_l_4;
-            //-0.6为基本速度，得根据情况修改
-            line_speed_left = -0.6 + (l_speed_l_1 + l_speed_l_2 + l_speed_l_3 + l_speed_l_4) / 4;
-            line_speed_right = -0.6 + (l_speed_r_1 + l_speed_r_2 + l_speed_r_3 + l_speed_r_4) / 4;
-            
-            m7_1_to_m7_0_data[0] = line_speed_left;
-            m7_1_to_m7_0_data[1] = line_speed_right;
-            SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-            
-            image_copy[line.top_point_y][94] = 255;
-            draw_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line);
-            
-            if(line.top_point_y >= 55 && line.top_point_y <= 65)
-              task_flag = 3;
-          }
+          find_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line, rect_max_threshold, rect_min_threshold);
           
-          //转圈
-          else if(task_flag == 3)
-          {
-            //最佳转圈速度
-            //m7_1_to_m7_0_data[0] = -0.1;
-            //m7_1_to_m7_0_data[1] = 0.9;
-            
-            //中速自转
-            //m7_1_to_m7_0_data[0] = -0.05;
-            //m7_1_to_m7_0_data[1] = 0.85;
-            
-            SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
-          }
+          l_speed_l_1 = PID_Control(&center_PID_1, center_x, line.center_line_center_x[0]);
+          l_speed_l_2 = PID_Control(&center_PID_2, center_x, line.center_line_center_x[10]);
+          l_speed_l_3 = PID_Control(&center_PID_3, center_x, line.center_line_center_x[20]);
+          l_speed_l_4 = PID_Control(&center_PID_4, center_x, line.center_line_center_x[30]);
+          
+          l_speed_r_1 = -l_speed_l_1;
+          l_speed_r_2 = -l_speed_l_2;
+          l_speed_r_3 = -l_speed_l_3;
+          l_speed_r_4 = -l_speed_l_4;
+          //-0.6为基本速度，得根据情况修改
+          line_speed_left = 0.6 + (l_speed_l_1 + l_speed_l_2 + l_speed_l_3 + l_speed_l_4) / 4;
+          line_speed_right = 0.6 + (l_speed_r_1 + l_speed_r_2 + l_speed_r_3 + l_speed_r_4) / 4;
+          
+          m7_1_to_m7_0_data[0] = line_speed_left;
+          m7_1_to_m7_0_data[1] = line_speed_right;
+          SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+          
+          image_copy[line.top_point_y][94] = 255;
+          draw_center_line((uint8_t*)image_copy, MT9V03X_W, MT9V03X_H, &line);
+          
+          if(line.top_point_y >= 55 && line.top_point_y <= 65)
+            task_flag = 3;
           // 发送图像
           //seekfree_assistant_camera_send();
+        }
+      }
+      //转圈
+      else if(task_flag == 3)
+      {
+        //比较理想的转圈速度
+        //m7_1_to_m7_0_data[0] = -0.1;
+        //m7_1_to_m7_0_data[1] = 0.9;
+        
 
-          //SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
+        //m7_1_to_m7_0_data[0] = -0.05;
+        //m7_1_to_m7_0_data[1] = 0.85;
+        
+        SCB_CleanInvalidateDCache_by_Addr(&m7_1_to_m7_0_data, sizeof(m7_1_to_m7_0_data));
       }
     }
 }

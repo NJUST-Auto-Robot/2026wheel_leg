@@ -64,7 +64,7 @@ float stage_2_point[10][2] = {{11.4, 5.14}, {11.4, 5.14}, {11.4, 5.14}, {11.4, 5
 float stage_2_distance[10] = {0};
 //点到原点的世界坐标系的角度
 float stage_2_azimuth[10] = {0};
-//车身出发时与正北方向的偏置——正北方向yaw-出发车身方向yaw
+//正北方向的yaw角
 float yaw_offset = 114.5;
 //实际使用的yaw角
 float stage_1_yaw[10] = {0};
@@ -455,7 +455,7 @@ void how_to_go_to_point(float *point, float *distance, float *azimuth, uint8_t p
   {
     distance[i] = get_two_points_distance(point[(i - 1) * 10 + 0], point[(i - 1) * 10 + 1], point[i * 10 + 0], point[i * 10 + 1]);
     //以正北方向为起点，顺时针选择的范围是0~360度的角度
-    azimuth[i] = get_two_points_azimuth(point[0], point[1], point[i * 10 + 0], point[i * 10 + 1]);
+    azimuth[i] = -get_two_points_azimuth(point[(i - 1) * 10 + 0], point[(i - 1) * 10 + 1], point[i * 10 + 0], point[i * 10 + 1]);
   }
 }
 //将上个点得到的点到原点的角度转化成实际的yaw角
@@ -463,8 +463,8 @@ void to_get_useful_angle(float *azimuth, float *yaw, float offset, uint8_t point
 {
   for(uint8_t i = 1; i < point_num; i++)
   {
-    if(azimuth[i] > 180.0f)
-      yaw[i] = azimuth[i] - 360.0f + offset;
+    if(azimuth[i] < -180.0f)
+      yaw[i] = azimuth[i] + 360.0f + offset;
     else
       yaw[i] = azimuth[i] + offset;
   }
